@@ -100,6 +100,7 @@ class RegistroAsistencia(models.Model):
     
     minutos_tarde = models.IntegerField(default=0, help_text="Minutos de llegada después de la hora entrada + tolerancia")
     minutos_temprano = models.IntegerField(default=0, help_text="Minutos de salida antes de la hora de salida establecida")
+    multa_monto = models.DecimalField(max_digits=10, decimal_places=2, default=0, help_text="Monto de castigo manual por tardanza o falta")
     observaciones = models.TextField(blank=True, null=True, help_text="Justificaciones o notas")
     
     class Meta:
@@ -114,6 +115,7 @@ class HorarioEmpleado(models.Model):
     entrada_esperada = models.TimeField(default="08:00")
     salida_esperada = models.TimeField(default="16:00")
     minutos_tolerancia = models.IntegerField(default=15, help_text="Margen de gracia antes de marcar tardanza")
+    es_flexible = models.BooleanField(default=False, help_text="Si es flexible, no se calculan tardanzas automáticas")
     
     def __str__(self):
         return f"Horario de {self.empleado}"

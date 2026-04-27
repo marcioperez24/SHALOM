@@ -187,6 +187,14 @@ def generar_pago_mes(request, empleado_id):
         dias_trabajados_input = Decimal(request.POST.get('dias_trabajados', '30.0') or '30.0')
         mes_input = int(request.POST.get('mes_pago', mes))
         anio_input = int(request.POST.get('anio_pago', anio))
+
+        # 1.5 Obtener Multas de Asistencia acumuladas en el periodo
+        # Si el periodo es mensual, buscamos todo el mes.
+        total_multas_asistencia = RegistroAsistencia.objects.filter(
+            empleado=empleado, 
+            fecha__month=mes_input, 
+            fecha__year=anio_input
+        ).aggregate(total=Sum('multa_monto'))['total'] or Decimal('0')
         
         # 2. Cálculos base (Prorrateo)
         valor_dia = contrato.salario_base / Decimal('30')
@@ -225,7 +233,7 @@ def generar_pago_mes(request, empleado_id):
                 'otras_deducciones': otras_deducciones_input,
                 'inss_patronal': calculos['inss_patronal'],
                 'inatec': calculos['inatec'],
-                'total_a_pagar': calculos['salario_neto'] - otras_deducciones_input,
+                'total_a_pagar': calculos['salario_neto'] - otras_deducciones_input - total_multas_asistencia,
                 'creado_por': request.user
             }
         )
@@ -390,12 +398,15 @@ def api_marcar_asistencia(request):
                 # Sumar margen de tolerancia
                 dt_limite = dt_entrada_esperada + datetime.timedelta(minutes=horario.minutos_tolerancia)
                 
-                if dt_ahora > dt_limite:
+                if dt_ahora > dt_limite and not horario.es_flexible:
                     tardanza_delta = dt_ahora - dt_entrada_esperada
                     minutos_tarde = int(tardanza_delta.total_seconds() / 60)
                     registro.minutos_tarde = minutos_tarde
                     registro.save()
                     extra_info = f" (Tardanza: {minutos_tarde} min)"
+                    msg += extra_info
+                elif horario.es_flexible:
+                    extra_info = " (Horario Flexible)"
                     msg += extra_info
         else:
             # --- Lógica de Salida (Salidas Tempranas) ---
@@ -554,6 +565,22 @@ def eliminar_feriado(request, pk):
     feriado = get_object_or_404(DiaFeriado, pk=pk)
     feriado.delete()
     messages.success(request, "Feriado eliminado.")
+    return redirect('recursos_humanos:gestion_asistencia')
+
+@login_required
+def aplicar_multa(request, pk):
+    """Aplica un castigo manual a un registro de asistencia."""
+    registro = get_object_or_404(RegistroAsistencia, pk=pk)
+    if request.method == 'POST':
+        monto = Decimal(request.POST.get('monto', '0'))
+        nota = request.POST.get('observaciones', '')
+        
+        registro.multa_monto = monto
+        if nota:
+            registro.observaciones = (registro.observaciones or "") + f" | Castigo: {nota}"
+        registro.save()
+        messages.success(request, f"Castigo de C$ {monto} aplicado a {registro.empleado}.")
+    
     return redirect('recursos_humanos:gestion_asistencia')
 
 # ==============================================================

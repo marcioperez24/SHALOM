@@ -1,6 +1,8 @@
 {% extends 'principal/base.html' %}
 {% load static %}
 
+{% block page_title %}Administrar Asistencia{% endblock %}
+
 {% block content %}
 <div class="container-fluid mt-4">
     <!-- Resumen de Hoy -->
@@ -57,7 +59,8 @@
                                     <th>Empleado</th>
                                     <th>Entrada</th>
                                     <th>Salida</th>
-                                    <th>Estado</th>
+                                    <th>Multa/Castigo</th>
+                                    <th>Acción</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -84,16 +87,50 @@
                                         {% endif %}
                                     </td>
                                     <td>
-                                        {% if a.minutos_tarde > 0 %}
-                                            <i class="fas fa-exclamation-circle text-danger" title="Llegó tarde"></i>
+                                        {% if a.multa_monto > 0 %}
+                                            <span class="text-danger fw-bold">C$ {{ a.multa_monto }}</span>
                                         {% else %}
-                                            <i class="fas fa-check-circle text-success"></i>
+                                            <span class="text-muted">---</span>
                                         {% endif %}
+                                    </td>
+                                    <td>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalMulta{{ a.pk }}">
+                                            <i class="fas fa-gavel"></i>
+                                        </button>
+
+                                        <!-- Modal de Multa -->
+                                        <div class="modal fade" id="modalMulta{{ a.pk }}" tabindex="-1" aria-hidden="true">
+                                            <div class="modal-dialog modal-sm">
+                                                <div class="modal-content">
+                                                    <form action="{% url 'recursos_humanos:aplicar_multa' a.pk %}" method="POST">
+                                                        {% csrf_token %}
+                                                        <div class="modal-header">
+                                                            <h6 class="modal-title">Aplicar Castigo</h6>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <p class="small text-muted">Empleado: {{ a.empleado }}</p>
+                                                            <div class="mb-3">
+                                                                <label class="form-label small fw-bold">Monto (C$)</label>
+                                                                <input type="number" name="monto" class="form-control" value="{{ a.multa_monto }}" step="0.01" required>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label class="form-label small fw-bold">Motivo</label>
+                                                                <textarea name="observaciones" class="form-control" rows="2" placeholder="Ej: Tardanza recurrente"></textarea>
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="submit" class="btn btn-danger btn-sm w-100">Guardar Castigo</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </td>
                                 </tr>
                                 {% empty %}
                                 <tr>
-                                    <td colspan="4" class="text-center py-4 text-muted">No hay registros hoy todavía.</td>
+                                    <td colspan="5" class="text-center py-4 text-muted">No hay registros hoy todavía.</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>

@@ -56,11 +56,12 @@ class ContratoForm(forms.ModelForm):
 class HorarioForm(forms.ModelForm):
     class Meta:
         model = HorarioEmpleado
-        fields = ['entrada_esperada', 'salida_esperada', 'minutos_tolerancia']
+        fields = ['entrada_esperada', 'salida_esperada', 'minutos_tolerancia', 'es_flexible']
         widgets = {
             'entrada_esperada': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
             'salida_esperada': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
             'minutos_tolerancia': forms.NumberInput(attrs={'class': 'form-control'}),
+            'es_flexible': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 
 class DiaFeriadoForm(forms.ModelForm):

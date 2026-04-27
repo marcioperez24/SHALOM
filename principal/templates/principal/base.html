@@ -261,7 +261,7 @@
                 {% endif %}
                 
                 {% if perms.auth.ver_grupo %}
-                <a href="{% url 'lista_grupos' %}" class="list-group-item list-group-item-action {% if 'gestion' in request.path %}active{% endif %}">
+                <a href="{% url 'lista_grupos' %}" class="list-group-item list-group-item-action {% if '/gestion/' in request.path and 'asistencia' not in request.path %}active{% endif %}">
                     <i class="fas fa-fw fa-users-cog"></i> Gestión de Permisos
                 </a>
                 {% endif %}

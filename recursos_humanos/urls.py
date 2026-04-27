@@ -27,6 +27,7 @@ urlpatterns = [
     path('asistencia/kiosko/', views.kiosko_asistencia_view, name='kiosko_asistencia'),
     path('asistencia/feriado/', views.registrar_feriado, name='registrar_feriado'),
     path('asistencia/feriado/eliminar/<int:pk>/', views.eliminar_feriado, name='eliminar_feriado'),
+    path('asistencia/multa/<int:pk>/', views.aplicar_multa, name='aplicar_multa'),
     path('api/marcar-asistencia/', views.api_marcar_asistencia, name='api_marcar_asistencia'),
     
     path('empleado/horario/<int:pk>/', views.configurar_horario, name='configurar_horario'),

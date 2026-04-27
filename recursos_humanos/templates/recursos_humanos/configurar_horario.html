@@ -35,10 +35,18 @@
                             </div>
                         </div>
 
-                        <div class="mb-4">
-                            <label class="form-label fw-bold small">Margen de Tolerancia (Minutos)</label>
-                            {{ form.minutos_tolerancia }}
-                            <small class="text-muted d-block">Minutos de gracia antes de marcar como tardanza.</small>
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small">Margen de Tolerancia (Minutos)</label>
+                                {{ form.minutos_tolerancia }}
+                                <small class="text-muted d-block">Minutos de gracia antes de marcar como tardanza.</small>
+                            </div>
+                            <div class="col-md-6 d-flex align-items-center pt-2">
+                                <div class="form-check form-switch mt-2">
+                                    {{ form.es_flexible }}
+                                    <label class="form-check-label fw-bold small ms-2" for="{{ form.es_flexible.id_for_label }}">¿Es Horario Flexible?</label>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="d-flex justify-content-between pt-3">
