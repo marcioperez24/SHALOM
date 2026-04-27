@@ -291,7 +291,7 @@ def nomina_general_mes(request):
 # ==============================================================
 @login_required
 def imprimir_nomina_general(request):
-    hoy = datetime.date.today()
+    hoy = timezone.now()
     mes = int(request.GET.get('mes', hoy.month))
     anio = int(request.GET.get('anio', hoy.year))
     
