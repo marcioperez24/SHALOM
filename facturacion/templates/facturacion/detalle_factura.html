@@ -1,0 +1,188 @@
+{% extends 'principal/base.html' %}
+{% load static %}
+{% block page_title %}
+Información de la Factura
+{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Detalles de la Factura #{{ factura.FacturaID }}</h2>
+        <a href="{% url 'facturacion:lista_facturas' %}" class="btn btn-secondary">Regresar a Facturas</a>
+    </div>
+    <hr>
+
+    <div class="card p-4 shadow-sm mb-4">
+        <h4>Información de la Factura</h4>
+        <dl class="row">
+            <dt class="col-sm-3">Estudiante:</dt>
+            <dd class="col-sm-9">{{ factura.EstudianteID.NombreCompleto }}</dd>
+
+            <dt class="col-sm-3">Fecha de Facturación:</dt>
+            <dd class="col-sm-9">{{ factura.Fecha|date:"Y-m-d" }}</dd>
+
+            <dt class="col-sm-3">Total:</dt>
+            <dd class="col-sm-9">{{ factura.Moneda}}{{ factura.Total|floatformat:2 }}</dd>
+
+            <dt class="col-sm-3">Saldo Pendiente:</dt>
+            <dd class="col-sm-9 {% if factura.Saldo > 0 %}text-danger{% else %}text-success{% endif %}">
+                {{ factura.Moneda}}{{ factura.Saldo|floatformat:2 }}
+            </dd>
+
+            <dt class="col-sm-3">Estado:</dt>
+            <dd class="col-sm-9">
+                <span class="badge {% if factura.Estado == 'Pagado' %}bg-success{% elif factura.Estado == 'Pendiente' %}bg-warning{% elif factura.Estado == 'Parcialmente Pagado' %}bg-warning{% else %}bg-danger{% endif %}">
+                    {{ factura.Estado }}
+                </span>
+            </dd>
+        </dl>
+    </div>
+
+    <div class="card p-4 shadow-sm mb-4">
+        <h4>Servicios Facturados</h4>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Servicio</th>
+                        <th>Cantidad</th>
+                        <th>Precio Unitario</th>
+                        <th>Monto Pagado</th>
+                        <th>Saldo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for detalle in detalles_servicios %}
+                    <tr>
+                        <td>
+                            {% if detalle.ServicioID %}
+                                {{ detalle.ServicioID.NombreServicio }}
+                            {% elif detalle.VarianteProductoID %}
+                                {{ detalle.VarianteProductoID }}
+                            {% else %}
+                                Producto Desconocido
+                            {% endif %}
+                        </td>
+                        <td>{{ detalle.Cantidad }}</td>
+                        <td>{{ factura.Moneda}}{{ detalle.PrecioUnitario|floatformat:2 }}</td>
+                        <td>{{ factura.Moneda}}{{ detalle.MontoPagado|floatformat:2 }}</td>
+                        <td>{{ factura.Moneda}}{{ detalle.Saldo|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card p-4 shadow-sm">
+        <h4>Historial de Pagos</h4>
+        {% if recibos %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead class="table-dark">
+                    <tr>
+                        <th># Recibo</th>
+                        <th>Fecha de Pago</th>
+                        <th>Monto Pagado</th>
+                        <th>Saldo de la Factura</th>
+                        <th>Descuento</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for recibo in recibos %}
+                    <tr>
+                        <td>{{ recibo.ReciboID }}</td>
+                        <td>{{ recibo.FechaPago|date:"Y-m-d" }}</td>
+                        <td>{{ factura.Moneda}}{{ recibo.MontoPagado|floatformat:2 }}</td>
+                        <td>{{ factura.Moneda}}{{ recibo.Saldo|floatformat:2 }}</td>
+                        <td>{{ factura.Moneda}}{{ factura.Descuento|floatformat:2 }}</td>
+                        <td>
+                            {% if recibo.Estado == 'Anulado' %}
+                                <span class="badge bg-danger">Anulado</span>
+                            {% else %}
+                                <a href="{% url 'facturacion:recibo_imprimir' recibo.ReciboID %}" class="btn btn-sm btn-info" target="_blank">
+                                    <i class="fas fa-print"></i> Imprimir
+                                </a>
+                                {% if arqueo_activo and perms.facturacion.anular_recibo %}
+                                    <button class="btn btn-sm btn-danger anular-recibo-btn" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#anularReciboModal" 
+                                            data-reciboid="{{ recibo.ReciboID }}">
+                                        <i class="fas fa-times-circle"></i> Anular
+                                    </button>
+                                {% endif %}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted">No se han registrado pagos para esta factura.</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="modal fade" id="anularReciboModal" tabindex="-1" aria-labelledby="anularReciboModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="anularReciboModalLabel">Confirmar Anulación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que quieres anular el recibo #<span id="modalReciboId"></span>?</p>
+                <p class="text-danger">Esta acción no se puede revertir. Al anular el recibo, el monto será devuelto a la factura y restado del arqueo de caja actual.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="confirmarAnulacionBtn">Anular Recibo</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Lógica para el botón de anular recibo
+        const anularBtns = document.querySelectorAll('.anular-recibo-btn');
+        const anularReciboModal = document.getElementById('anularReciboModal');
+        const modalReciboIdSpan = document.getElementById('modalReciboId');
+        const confirmarAnulacionBtn = document.getElementById('confirmarAnulacionBtn');
+
+        anularBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const reciboId = this.getAttribute('data-reciboid');
+                modalReciboIdSpan.textContent = reciboId;
+                confirmarAnulacionBtn.setAttribute('data-reciboid', reciboId);
+            });
+        });
+
+        confirmarAnulacionBtn.addEventListener('click', function() {
+            const reciboId = this.getAttribute('data-reciboid');
+            
+            fetch(`/facturacion/anular_recibo/${reciboId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Recibo anulado exitosamente. Se ha actualizado el saldo de la factura y el arqueo de caja.');
+                    window.location.reload();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Ocurrió un error al intentar anular el recibo.');
+            });
+        });
+    });
+</script>
+{% endblock %}

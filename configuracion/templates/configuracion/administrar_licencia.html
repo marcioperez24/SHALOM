@@ -1,0 +1,124 @@
+{% extends 'principal/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %} {% block page_title %}
+{{ titulo }}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Estilo para ocultar la sección del formulario de actualización por defecto */
+    #renovar-licencia-form-card {
+        display: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h2><i class="fas fa-lock me-2 text-warning"></i> {{ titulo }}</h2>
+    <p class="lead">Información de la licencia actual del sistema.</p>
+    <hr>
+    
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg mb-4">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">Estado de la Licencia</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless">
+                        <tr>
+                            <td class="fw-bold">Estado Actual:</td>
+                            <td>
+                                {% if is_licencia_valida %}
+                                    <span class="badge bg-success"><i class="fas fa-check-circle"></i> Válida</span>
+                                {% else %}
+                                    <span class="badge bg-danger"><i class="fas fa-times-circle"></i> Vencida / Inactiva</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold">Clave de Licencia:</td>
+                            <td><code>{{ licencia.clave|default:"No Establecida" }}</code></td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold">Fecha de Activación:</td>
+                            <td>{{ licencia.fecha_activacion|date:"d M Y" }}</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold">Fecha de Caducidad:</td>
+                            <td>
+                                <span class="fw-bold text-{% if is_licencia_valida %}primary{% else %}danger{% endif %}">
+                                    {{ licencia.fecha_caducidad|date:"d M Y" }}
+                                </span>
+                            </td>
+                        </tr>
+                    </table>
+                    
+                    <div class="mt-4 pt-3 border-top">
+                        <a href="{% url 'configuracion:configuracion_home' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i> Volver a Configuración
+                        </a>
+
+                        <button class="btn btn-warning ms-2" onclick="toggleLicenciaForm()">
+                            <i class="fas fa-sync-alt me-2"></i> Renovar/Actualizar Licencia
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card shadow-lg mb-4 border-warning" id="renovar-licencia-form-card">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="fas fa-edit me-2"></i> Actualizar Fechas y Clave</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form|crispy }} 
+                        
+                        <button type="submit" class="btn btn-warning w-100 mt-3">
+                            <i class="fas fa-upload me-2"></i> Guardar Nueva Licencia
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary w-100 mt-2" onclick="toggleLicenciaForm()">
+                            <i class="fas fa-times me-2"></i> Cancelar
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleLicenciaForm() {
+        const card = document.getElementById('renovar-licencia-form-card');
+        
+        if (card.style.display === 'none' || card.style.display === '') {
+            card.style.display = 'block';
+            card.scrollIntoView({ behavior: 'smooth', block: 'start' }); 
+        } else {
+            card.style.display = 'none';
+        }
+    }
+    
+    // Si hay errores en el formulario después de un POST fallido, asegúrate de que esté visible.
+    document.addEventListener('DOMContentLoaded', function() {
+        const card = document.getElementById('renovar-licencia-form-card');
+        // Usamos la variable 'form' que contiene errores si el POST falló
+        {% if form.errors %}
+            card.style.display = 'block';
+            card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        {% endif %}
+    });
+</script>
+{% endblock %}

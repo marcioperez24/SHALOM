@@ -1,0 +1,312 @@
+{% extends 'principal/base.html' %}
+
+{% block page_title %}
+Gestión de Matrículas
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5 matricula-container">
+    <div class="row mb-4 align-items-center">
+        <div class="col-12 text-center text-md-start">
+            <h2 class="display-5 fw-bold">Panel de Control de Matrícula y Registro Academico de los Estudiantes</h2>
+            <p class="lead text-muted">
+                Administra el Registro, Matrícula e Inscripción de Materias de los Estudiantes, así como también el Ingreso y Visualización de Notas.
+            </p>
+        </div>
+    </div>
+
+    <hr>
+
+    <div class="row g-4 justify-content-center">
+        <!-- Tarjeta 1: Registrar Estudiante -->
+        <div class="col-sm-10 col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-success">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0 d-flex align-items-center">
+                        <i class="fas fa-user-plus me-2"></i> Registrar Nuevo Estudiante
+                    </h5>
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <p class="card-text">
+                        Inicia el proceso de matrícula creando el registro personal del nuevo estudiante.
+                    </p>
+                    {% if perms.Matricula.crear_estudiantes_nueva %}
+                    <a href="{% url 'Matricula:crear_estudiante' %}" class="btn btn-outline-success mt-auto">
+                        <i class="fas fa-edit"></i> Iniciar Registro
+                    </a>
+                    {% else %}
+                    <button class="btn btn-outline-success mt-auto" disabled>Permiso Requerido</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarjeta 2: Listado General -->
+        <div class="col-sm-10 col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0 d-flex align-items-center">
+                        <i class="fas fa-users me-2"></i> Listado General de Estudiantes
+                    </h5>
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <p class="card-text">
+                        Consulta, edita y gestiona el historial académico y las matrículas activas.
+                    </p>
+                    {% if perms.Matricula.ver_activos_estudiantes_nueva %}
+                    <a href="{% url 'Matricula:listar_estudiantes' %}" class="btn btn-outline-primary mt-auto">
+                        <i class="fas fa-list-alt"></i> Ver Estudiantes
+                    </a>
+                    {% else %}
+                    <button class="btn btn-outline-primary mt-auto" disabled>Permiso Requerido</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarjeta 3: Ingreso de Notas -->
+        <div class="col-sm-10 col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-info">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0 d-flex align-items-center">
+                        <i class="fas fa-chart-bar me-2"></i> Registro y Actualización de Notas
+                    </h5>
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <p class="card-text">
+                        Accede al panel para ingresar y modificar las calificaciones por materia y corte.
+                    </p>
+                    {% if perms.Matricula.registro_notas %}
+                    <a href="{% url 'Matricula:ingreso_calificaciones_filtro' %}" class="btn btn-outline-info mt-auto">
+                        <i class="fas fa-list-alt"></i> Ingresar Notas
+                    </a>
+                    {% else %}
+                    <button class="btn btn-outline-primary mt-auto" disabled>Permiso Requerido</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarjeta 4: Sábana de Calificaciones -->
+        <div class="col-sm-10 col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-warning">
+                <div class="card-header bg-warning text-dark"> <!-- Ajuste color texto -->
+                    <h5 class="mb-0 d-flex align-items-center">
+                        <i class="fas fa-clipboard-list me-2"></i> Sábana de Calificaciones
+                    </h5>
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <p class="card-text">
+                        Genera un reporte detallado (y exportable a Excel) para todos los estudiantes de una sección específica.
+                    </p>
+                    {% if perms.Matricula.sabana_calificaciones %}
+                    <a href="{% url 'Matricula:reporte_calificaciones_filtro' %}" class="btn btn-outline-warning mt-auto">
+                        <i class="fas fa-file-invoice"></i> Generar Sábana
+                    </a>
+                    {% else %}
+                    <button class="btn btn-outline-warning mt-auto" disabled>Permiso Requerido</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+         <!-- Tarjeta 5: Boletín Individual -->
+         <div class="col-sm-10 col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-secondary">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0 d-flex align-items-center">
+                        <i class="fas fa-user-graduate me-2"></i> Boletín Individual
+                    </h5>
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <p class="card-text">
+                        Genera un boletín imprimible para un estudiante específico, seleccionando los periodos a incluir.
+                    </p>
+                    {% if perms.Matricula.boletin_individual %}
+                    <a href="{% url 'Matricula:boletin_individual_filtro' %}" class="btn btn-outline-secondary mt-auto">
+                        <i class="fas fa-id-card"></i> Generar Boletín
+                    </a>
+                    {% else %}
+                    <button class="btn btn-outline-secondary mt-auto" disabled>Permiso Requerido</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarjeta 6: Boletín Grupal (NUEVA) -->
+        <div class="col-sm-10 col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-indigo" style="border-color: #6610f2;">
+                <div class="card-header text-white" style="background-color: #6610f2;">
+                    <h5 class="mb-0 d-flex align-items-center">
+                        <i class="fas fa-users-rectangle me-2"></i> Impresión Grupal
+                    </h5>
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <p class="card-text">
+                        Imprime masivamente los boletines de toda una sección o grado, con opción de seleccionar alumnos.
+                    </p>
+                    {% if perms.Matricula.boletin_individual %}
+                    <a href="{% url 'Matricula:boletin_grupal_filtro' %}" class="btn btn-outline-indigo mt-auto" style="color: #6610f2; border-color: #6610f2;">
+                        <i class="fas fa-print"></i> Imprimir por Grado
+                    </a>
+                    {% else %}
+                    <button class="btn btn-outline-secondary mt-auto" disabled>Permiso Requerido</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- 
+        =============================================================
+          NUEVA TARJETA: Historial Académico
+        =============================================================
+        -->
+        <div class="col-sm-10 col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0 d-flex align-items-center">
+                        <i class="fas fa-history me-2"></i> Historial Académico
+                    </h5>
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <p class="card-text">
+                        Consulta el historial completo de calificaciones de un estudiante a lo largo de todos sus años académicos.
+                    </p>
+                    {% if perms.Matricula.historial_academico %} <!-- Puedes usar el mismo permiso o crear uno nuevo -->
+                    <a href="{% url 'Matricula:historial_academico_filtro' %}" class="btn btn-outline-danger mt-auto">
+                        <i class="fas fa-book-reader"></i> Ver Historial
+                    </a>
+                    {% else %}
+                    <button class="btn btn-outline-danger mt-auto" disabled>Permiso Requerido</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <!-- Fin Nueva Tarjeta -->
+         <div class="col-sm-10 col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-dark">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0 d-flex align-items-center">
+                        <i class="fas fa-user-slash me-2"></i> Estudiantes Inactivos
+                    </h5>
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <p class="card-text">
+                        Visualiza la lista de estudiantes que han sido dados de baja, retirados o egresados del sistema.
+                    </p>
+                    {% if perms.Matricula.ver_inactivos_estudiantes_nueva %}
+                    <a href="{% url 'Matricula:listar_estudiantes_inactivos' %}" class="btn btn-outline-dark mt-auto">
+                        <i class="fas fa-archive"></i> Ver Inactivos
+                    </a>
+                    {% else %}
+                    <button class="btn btn-outline-dark mt-auto" disabled>Permiso Requerido</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+/* ===============================
+    ESTILOS GENERALES Y RESPONSIVE
+================================= */
+.matricula-container {
+    font-family: 'Poppins', 'Segoe UI', sans-serif;
+    padding: 15px;
+}
+
+h2.display-5 {
+    font-size: 2.2rem;
+}
+
+.card {
+    transition: transform 0.2s ease, box-shadow 0.3s ease;
+    border-radius: 0.5rem; /* Bordes más redondeados */
+}
+
+.card:hover {
+    transform: translateY(-4px); /* Efecto hover más pronunciado */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+.card-header {
+     border-top-left-radius: 0.5rem; /* Redondear esquina superior */
+     border-top-right-radius: 0.5rem;
+}
+.card-header h5 {
+    font-size: 1.1rem;
+    font-weight: 500; /* Ligeramente más ligero */
+}
+
+/* Textos adaptativos */
+p.lead {
+    font-size: 1rem;
+    margin-bottom: 10px;
+}
+
+/* Ajuste de botones */
+.card .btn {
+    font-weight: 500;
+    font-size: 0.95rem;
+    padding: 10px 15px; /* Padding ajustado */
+    border-radius: 0.375rem; /* Bordes redondeados */
+}
+
+/* ====== BREAKPOINTS RESPONSIVE ====== */
+
+/* Tablets */
+@media (max-width: 992px) {
+    h2.display-5 {
+        font-size: 1.9rem;
+        text-align: center;
+    }
+    p.lead {
+        text-align: center;
+        font-size: 0.95rem;
+    }
+    .card-header h5 {
+        font-size: 1rem;
+    }
+     .row.g-4 {
+        justify-content: center; /* Centrar tarjetas en tablet */
+    }
+}
+
+/* Pantallas pequeñas (móviles grandes) */
+@media (max-width: 768px) {
+    .matricula-container {
+        padding: 10px;
+    }
+    h2.display-5 {
+        font-size: 1.6rem;
+    }
+    .card {
+        margin-bottom: 20px;
+    }
+    .card .btn {
+        font-size: 0.9rem;
+        padding: 9px 12px;
+    }
+}
+
+/* Móviles pequeños */
+@media (max-width: 576px) {
+    h2.display-5 {
+        font-size: 1.4rem;
+    }
+    p.lead {
+        font-size: 0.9rem;
+    }
+    .card-header h5 {
+        font-size: 0.95rem;
+    }
+    .card .btn {
+        width: 100%;
+        font-size: 0.9rem;
+    }
+}
+</style>
+{% endblock %}
+

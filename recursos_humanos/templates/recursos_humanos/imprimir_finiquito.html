@@ -1,0 +1,126 @@
+{% extends 'principal/base.html' %}
+
+{% block page_title %}Liquidación Final{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5">
+    <div class="card shadow border-0" style="max-width: 850px; margin: auto;">
+        <!-- Cabecera de la Institución -->
+        <div class="card-header bg-white text-center py-4 border-bottom border-2">
+            <h3 class="mb-1 fw-bold">COLEGIO CRISTIANO SHALOM</h3>
+            <h5 class="text-muted mb-0">CONSTANCIA DE LIQUIDACIÓN Y FINIQUITO LABORAL</h5>
+        </div>
+        
+        <div class="card-body p-5">
+            <!-- Párrafo introductorio legal -->
+            <p class="text-justify lh-lg mb-4">
+                El presente documento hace constar y certifica el cálculo de los derechos laborales irrenunciables e indemnizaciones correspondientes (según el Código del Trabajo de la República de Nicaragua) a favor del Sr/a. <strong class="text-uppercase">{{ empleado.nombres }} {{ empleado.apellidos }}</strong>, quien se desempeñó en el cargo de <strong>{{ empleado.cargo }}</strong>. 
+                Cesa sus funciones con fecha de salida efectiva el día <strong>{{ liquidacion.fecha_salida|date:"d \d\e F \d\e\l Y" }}</strong> 
+                por motivo de <span class="fw-bold bg-light px-2">{{ liquidacion.get_motivo_display }}</span>.
+            </p>
+
+            <!-- Datos Base -->
+            <div class="row mb-5 border p-3 rounded bg-light">
+                <div class="col-6">
+                    <p class="mb-1"><strong>Nº Cédula:</strong> {{ empleado.cedula }}</p>
+                    <p class="mb-1"><strong>Nº INSS:</strong> {{ empleado.numero_inss }}</p>
+                </div>
+                <div class="col-6 text-end">
+                    <p class="mb-1"><strong>Fecha de Ingreso:</strong> {{ empleado.fecha_contratacion|date:"d/m/Y" }}</p>
+                    <p class="mb-1"><strong>Salario Base Promedio Mensual:</strong> C$ {{ liquidacion.salario_base_calculo|floatformat:2 }}</p>
+                </div>
+            </div>
+
+            <!-- Tabla de Liquidación -->
+            <h6 class="fw-bold mb-3">DESGLOSE DE PRESTACIONES LEY (MITRAB):</h6>
+            <table class="table table-bordered mb-5">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 70%;">Concepto Legal</th>
+                        <th class="text-end">Monto (C$)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="py-3">
+                            <strong class="d-block">1. Treceavo Mes (Aguinaldo) Proporcional</strong>
+                            <small class="text-muted">Art. 93 Código del Trabajo</small>
+                        </td>
+                        <td class="text-end align-middle fs-5">C$ {{ liquidacion.aguinaldo_proporcional|floatformat:2 }}</td>
+                    </tr>
+                    <tr>
+                        <td class="py-3">
+                            <strong class="d-block">2. Vacaciones No Gozadas Proporcionales</strong>
+                            <small class="text-muted">Art. 76 Código del Trabajo</small>
+                        </td>
+                        <td class="text-end align-middle fs-5">C$ {{ liquidacion.vacaciones_proporcionales|floatformat:2 }}</td>
+                    </tr>
+                    <tr>
+                        <td class="py-3">
+                            <strong class="d-block">3. Indemnización por Años de Servicio (Antigüedad)</strong>
+                            <small class="text-muted">
+                                {% if liquidacion.indemnizacion_antiguedad > 0 %}
+                                Art. 45 Código del Trabajo
+                                {% else %}
+                                Art. 44 (Nula por Renuncia sin Preaviso de 15 días)
+                                {% endif %}
+                            </small>
+                        </td>
+                        <td class="text-end align-middle fs-5 {% if liquidacion.indemnizacion_antiguedad == 0 %}text-danger fw-bold{% endif %}">
+                            C$ {{ liquidacion.indemnizacion_antiguedad|floatformat:2 }}
+                        </td>
+                    </tr>
+                </tbody>
+                <tfoot class="table-group-divider">
+                    <tr class="table-dark text-white">
+                        <td class="text-end fw-bold py-3 fs-5">GRAN TOTAL A LIQUIDAR (NETO):</td>
+                        <td class="text-end py-3 fw-bold fs-4">C$ {{ liquidacion.monto_total_liquidado|floatformat:2 }}</td>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <!-- Párrafo de descargo -->
+            <p class="text-justify small text-muted mb-5">
+                Con la firma de la presente planilla de liquidación, el trabajador reconoce y acepta que ha recibido a su entera satisfacción la cantidad arriba descrita, otorgando por tanto al COLEGIO CRISTIANO SHALOM el más amplio, completo y total finiquito de las obligaciones laborales que pudieran corresponderle en virtud de la relación de trabajo que los unía, declarando que no se le adeuda suma alguna por ningún concepto derivado del contrato de trabajo ni de la ley.
+            </p>
+
+            <!-- Firmas -->
+            <div class="row px-4 mt-5 pt-5 text-center">
+                <div class="col-6">
+                    <div class="border-top border-dark mx-4 pt-2">
+                        <p class="mb-0 fw-bold text-uppercase">{{ empleado.nombres }} {{ empleado.apellidos }}</p>
+                        <p class="small text-muted">Recibí Conforme (Trabajador)</p>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="border-top border-dark mx-4 pt-2">
+                        <p class="mb-0 fw-bold">COLEGIO CRISTIANO SHALOM</p>
+                        <p class="small text-muted">Recursos Humanos / Administración</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-5 text-muted small">
+                Generado el {{ hoy|date:"d/m/Y" }} por el sistema.
+            </div>
+
+        </div>
+        <div class="card-footer bg-white text-center no-print border-0 pb-4">
+            <button onclick="window.print()" class="btn btn-outline-danger px-5 btn-lg">
+                <i class="fas fa-print"></i> Imprimir Constancia Legal
+            </button>
+            <a href="{% url 'recursos_humanos:lista_empleados' %}" class="btn btn-secondary px-4 btn-lg ms-3">Volver a Empleados</a>
+        </div>
+    </div>
+</div>
+
+<style>
+    @media print {
+        body { background-color: white !important; }
+        .no-print { display: none !important; }
+        .card { border: none !important; box-shadow: none !important; }
+        .table-dark { color: black !important; background-color: #f8f9fa !important; border-top: 2px solid black !important; }
+        .table-dark td { color: black !important; background-color: transparent !important; }
+    }
+</style>
+{% endblock %}

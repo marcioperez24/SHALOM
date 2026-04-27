@@ -1,0 +1,279 @@
+{% extends 'principal/base.html' %}
+{% load static %}
+
+{% block page_title %}
+Consulta de Ingresos por Período
+{% endblock %}
+
+{% block extra_css %}
+<!-- Font Awesome para íconos -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+    /* ---------------------------------------------------------------------- */
+    /* ESTILOS FORZADOS PARA RESOLVER PROBLEMAS DE BASE.HTML/CACHE */
+    /* ---------------------------------------------------------------------- */
+    
+    /* Azul para Córdobas (C$) - USANDO !IMPORTANT */
+    .card.bg-cordobas { 
+        background-color: #007bff !important; 
+        color: white !important; 
+    }
+    
+    /* Verde para Dólares (USD) - USANDO !IMPORTANT */
+    .card.bg-dolares { 
+        background-color: #28a745 !important; 
+        color: white !important; 
+    }
+    
+    /* Amarillo/Naranja para Conteo de Recibos - USANDO !IMPORTANT */
+    .card.bg-facturas { 
+        background-color: #ffc107 !important; 
+        color: black !important; /* Texto en negro para que contraste con el amarillo */
+    } 
+    
+    /* Fuente para los montos */
+    .monto-display {
+        font-size: 2.5rem; /* Ajuste para que se vea bien en tarjetas */
+        font-weight: 700;
+        word-break: break-all;
+    }
+
+    /* Animación Hover para las tarjetas de Ingresos */
+    .card.animated-card {
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        cursor: pointer; /* Cambiamos el cursor para indicar interactividad */
+    }
+    
+    .card.animated-card:hover {
+        transform: translateY(-8px); /* Desplaza un poco más para que se note */
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3); /* Sombra más fuerte */
+        filter: brightness(1.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <!-- Título ajustado para mayor claridad -->
+    <h2>{{ titulo }}</h2>
+    <hr>
+
+    <!-- 1. FILTROS DE FECHA Y BOTONES DE ACCIÓN -->
+    <div class="card shadow-lg mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="fas fa-filter me-2"></i> Filtro de Período (Basado en Fecha de Pago)</h5>
+        </div>
+        <div class="card-body">
+            <form id="filtro-fecha-form" method="GET" action="{% url 'facturacion:consulta_ingresos' %}">
+                <div class="row g-3 align-items-end">
+                    
+                    <div class="col-md-4 col-sm-6">
+                        <label for="id_fecha_inicio" class="form-label">Fecha de Inicio</label>
+                        <input type="date" id="id_fecha_inicio" name="fecha_inicio" 
+                               class="form-control" value="{{ fecha_inicio|default_if_none:'' }}">
+                    </div>
+
+                    <div class="col-md-4 col-sm-6">
+                        <label for="id_fecha_fin" class="form-label">Fecha de Fin</label>
+                        <input type="date" id="id_fecha_fin" name="fecha_fin" 
+                               class="form-control" value="{{ fecha_fin|default_if_none:'' }}">
+                    </div>
+                    
+                    <div class="col-md-4 d-flex gap-2">
+                        <button type="submit" class="btn btn-success flex-grow-1">
+                            <i class="fas fa-search me-2"></i> Generar Consulta
+                        </button>
+                        
+                        <!-- Botón de Impresión con lógica JavaScript -->
+                        {% if total_facturas > 0 %}
+                        <button type="button" class="btn btn-secondary" onclick="imprimirResumen()">
+                            <i class="fas fa-print"></i> Imprimir Resumen Diario
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 2. RESUMEN DE INGRESOS (3 TARJETAS SEPARADAS) -->
+    <div class="row g-4 mb-5">
+        
+        <!-- Tarjeta 1: Ingreso Neto (C$) - AZUL -->
+        <div class="col-lg-4 col-md-6 col-sm-12">
+            <!-- CLASES FORZADAS: bg-cordobas, animated-card -->
+            <div class="card bg-cordobas shadow-lg h-100 animated-card">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-coins me-2"></i> Ingreso Neto (Córdobas)</h5>
+                    
+                    <!-- Muestra la variable total_cordobas alineada con la impresión -->
+                    <p class="monto-display mb-0">C$ {{ total_cordobas|floatformat:2 }}</p>
+                    
+                    <p class="card-text border-top pt-2 mt-2">
+                        Total de pagos recibidos en C$.
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tarjeta 2: Ingreso Neto (USD) - VERDE -->
+        <div class="col-lg-4 col-md-6 col-sm-12">
+            <!-- CLASES FORZADAS: bg-dolares, animated-card -->
+            <div class="card bg-dolares shadow-lg h-100 animated-card">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-dollar-sign me-2"></i> Ingreso Neto (Dólares)</h5>
+                    
+                    <!-- Muestra la variable total_dolares alineada con la impresión -->
+                    <p class="monto-display mb-0">$ {{ total_dolares|floatformat:2 }}</p>
+                    
+                    <p class="card-text border-top pt-2 mt-2">
+                        Total de pagos recibidos en USD.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarjeta 3: Total de Recibos Procesados - AMARILLO/NARANJA -->
+        <div class="col-lg-4 col-md-12 col-sm-12">
+            <!-- CLASES FORZADAS: bg-facturas, animated-card -->
+            <div class="card bg-facturas shadow-lg h-100 animated-card">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-receipt me-2"></i> Total de Recibos Procesados</h5>
+                    <!-- total_facturas ahora contiene la cuenta de recibos/pagos -->
+                    <p class="monto-display mb-0">{{ total_facturas }}</p>
+                    <p class="card-text border-top pt-2 mt-2">
+                        Cantidad de transacciones de pago registradas.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 3. DETALLE DE PAGOS (Basado en DetallesArqueo) -->
+    <h3>Detalle de Pagos (Registrados por Recibo)</h3>
+    {% if detalles_pagos %}
+        <div class="table-responsive">
+            <table class="table table-hover table-bordered shadow-sm">
+                <thead class="table-dark">
+                    <tr>
+                        <!-- Columna de contador ELIMINADA -->
+                        <th style="width: 8%;">Recibo ID</th>
+                        <th style="width: 8%;">Factura ID</th>
+                        <th style="width: 10%;">Fecha Pago</th>
+                        <th style="width: 10%;">Cajero</th> <!-- NUEVA COLUMNA AQUÍ -->
+                        <th style="width: 18%;">Cliente/Estudiante</th>
+                        <th style="width: 20%;">Concepto Pagado</th>
+                        <th class="text-end bg-cordobas text-white" style="width: 10%;">Monto C$</th>
+                        <th class="text-end bg-dolares text-white" style="width: 10%;">Monto $</th>
+                        <th style="width: 6%;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pago in detalles_pagos %}
+                    <tr>
+                        <td>{{ pago.ReciboID.ReciboID }}</td>
+                        <td>{{ pago.ReciboID.FacturaID.FacturaID }}</td>
+                        <!-- FECHA DE PAGO (Fecha del Arqueo) -->
+                        <td>{{ pago.Fecha|date:"d/m/Y" }}</td>
+                        <!-- CAMPO CAJERO AGREGADO -->
+                        <td>{{ pago.ArqueoID.UsuarioID.username }}</td>
+                        
+                        <td>{{ pago.ReciboID.FacturaID.EstudianteID.NombreCompleto }}</td>
+                        <td>{{ pago.ServicioID.NombreServicio }}</td>
+                        <td class="text-end fw-bold">C$ {{ pago.MontoCordobas|floatformat:2 }}</td>
+                        <td class="text-end fw-bold">$ {{ pago.MontoUSD|floatformat:2 }}</td>
+                        <td>
+                            <!-- Enlace al detalle del recibo (que ya existe) -->
+                            <a href="{% url 'facturacion:recibo_detalle' pago.ReciboID.ReciboID %}" class="btn btn-sm btn-info" title="Ver Recibo">
+                                <i class="fas fa-receipt"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginación -->
+        <div class="d-flex justify-content-center mt-4">
+            <div class="btn-group shadow-sm" role="group" aria-label="Paginación de pagos">
+                
+                {% comment %} Mantener los parámetros de filtro en la paginación {% endcomment %}
+                {% with query_params='fecha_inicio='|add:fecha_inicio|add:'&fecha_fin='|add:fecha_fin %}
+
+                    {% if page_obj.has_previous %}
+                    <a href="?{{ query_params }}&page=1"
+                       class="btn btn-outline-primary fw-bold" title="Primera página">
+                        Primera
+                    </a>
+                    {% else %}
+                    <button type="button" class="btn btn-light" disabled>Primera</button>
+                    {% endif %}
+
+                    {% if page_obj.has_previous %}
+                    <a href="?{{ query_params }}&page={{ page_obj.previous_page_number }}"
+                       class="btn btn-outline-secondary" title="Página anterior">
+                        Anterior
+                    </a>
+                    {% else %}
+                    <button type="button" class="btn btn-light" disabled>Anterior</button>
+                    {% endif %}
+
+                    <span class="btn btn-light fw-bold">
+                        Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                    </span>
+
+                    {% if page_obj.has_next %}
+                    <a href="?{{ query_params }}&page={{ page_obj.next_page_number }}"
+                       class="btn btn-outline-secondary" title="Página siguiente">
+                        Siguiente
+                    </a>
+                    {% else %}
+                    <button type="button" class="btn btn-light" disabled>Siguiente</button>
+                    {% endif %}
+
+                    {% if page_obj.has_next %}
+                    <a href="?{{ query_params }}&page={{ page_obj.paginator.num_pages }}"
+                       class="btn btn-outline-primary fw-bold" title="Última página">
+                        Última
+                    </a>
+                    {% else %}
+                    <button type="button" class="btn btn-light" disabled>Última</button>
+                    {% endif %}
+                
+                {% endwith %}
+
+            </div>
+        </div>
+        
+    {% else %}
+    <div class="alert alert-info mt-4" role="alert">
+        No se encontraron pagos (recibos) registrados en el período seleccionado.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function imprimirResumen() {
+        // 1. Obtener los filtros de fecha
+        const fechaInicio = document.getElementById('id_fecha_inicio').value;
+        const fechaFin = document.getElementById('id_fecha_fin').value;
+        
+        // 2. Preguntar al usuario si desea incluir el detalle de pagos
+        const incluirDetalle = confirm("¿Desea incluir el detalle de todos los PAGOS (Recibos) del período en la impresión?\n\n- Aceptar: Resumen Diario + Detalle de Pagos\n- Cancelar: Solo Resumen Diario");
+
+        // 3. Construir los parámetros de la URL
+        const params = new URLSearchParams();
+        if (fechaInicio) params.append('fecha_inicio', fechaInicio);
+        if (fechaFin) params.append('fecha_fin', fechaFin);
+        // Cambiamos el parámetro, aunque el nombre del request puede ser el mismo.
+        params.append('incluir_facturas', incluirDetalle ? 'true' : 'false'); 
+
+        // 4. Construir y abrir la URL de impresión
+        const urlImprimir = `{% url 'facturacion:consulta_ingresos_imprimir' %}?${params.toString()}`;
+        window.open(urlImprimir, '_blank');
+    }
+</script>
+{% endblock %}

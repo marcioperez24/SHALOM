@@ -1,0 +1,38 @@
+{% extends 'principal/base.html' %}
+{% load static %}
+
+{% block page_title %}
+Asignar Usuarios a Grupo
+{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm p-4 mx-auto" style="max-width: 800px;">
+    <h1 class="h2 mb-4">Asignar Usuarios a: <span class="text-primary">{{ group_name }}</span></h1>
+    
+    <form method="post">
+        {% csrf_token %}
+        <div>
+            <label class="form-label fw-semibold">Usuarios</label>
+            <div class="border rounded-2 p-3 bg-light" style="max-height: 400px; overflow-y: auto;">
+                <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-2">
+                    {% for user in form.users %}
+                    <div class="col">
+                        <div class="form-check p-2 rounded hover-bg-gray-50">
+                            {{ user.tag }}
+                            <label for="{{ user.id_for_label }}" class="form-check-label ms-2">
+                                {{ user.choice_label }}
+                            </label>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="text-end mt-4">
+            <button type="submit" class="btn btn-primary">
+                Guardar Cambios
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

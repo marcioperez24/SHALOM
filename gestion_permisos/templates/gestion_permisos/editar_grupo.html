@@ -1,0 +1,102 @@
+{% extends 'principal/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="card shadow-sm border-0" style="border-radius: 15px;">
+        <div class="card-body p-4">
+            <h2 class="text-center mb-2 fw-bold text-dark">Editar Grupo</h2>
+            <p class="text-center text-muted mb-4">Módulo de Seguridad: <span class="badge bg-primary fs-6">{{ grupo.name }}</span></p>
+            
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="row justify-content-center mb-4">
+                    <div class="col-md-8">
+                        {{ form.name|as_crispy_field }}
+                    </div>
+                </div>
+
+                <div class="border rounded p-4 bg-light">
+                    <h5 class="fw-bold mb-4 text-dark"><i class="fas fa-key me-2"></i>Permisos de Acceso</h5>
+                    
+                    <div class="accordion shadow-sm" id="accordionPermisos">
+                        {% for modulo, permisos in permisos_agrupados.items %}
+                        <div class="accordion-item border-0 mb-2 rounded shadow-sm overflow-hidden">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ forloop.counter }}">
+                                    <i class="fas fa-folder me-2 text-warning"></i> {{ modulo }}
+                                    <span class="ms-auto badge bg-secondary rounded-pill fw-normal me-3">{{ permisos|length }} permisos</span>
+                                </button>
+                            </h2>
+                            <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse" data-bs-parent="#accordionPermisos">
+                                <div class="accordion-body bg-white">
+                                    <div class="mb-3 text-end">
+                                        <button type="button" class="btn btn-sm btn-outline-primary rounded-pill" onclick="toggleModulo(this, 'collapse{{ forloop.counter }}')">
+                                            <i class="fas fa-check-circle me-1"></i> Seleccionar Módulo
+                                        </button>
+                                    </div>
+                                    <div class="row row-cols-1 row-cols-md-3 g-3">
+                                        {% for p in permisos %}
+                                        <div class="col">
+                                            <div class="form-check p-2 border rounded hover-effect {% if p.checked %}border-primary bg-light{% endif %}" style="min-height: 65px;">
+                                                <input class="form-check-input ms-1" type="checkbox" name="permissions" value="{{ p.id }}" id="perm_{{ p.id }}"
+                                                {% if p.checked %}checked{% endif %}>
+                                                
+                                                <label class="form-check-label ms-2 d-block" for="perm_{{ p.id }}">
+                                                    {% with codename=p.codename|lower label=p.name|lower %}
+                                                        <div class="mb-1">
+                                                            {% if 'add' in codename or 'crear' in label %}
+                                                                <span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size: 0.6rem;">AÑADIR</span>
+                                                            {% elif 'change' in codename or 'editar' in label %}
+                                                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle" style="font-size: 0.6rem;">EDITAR</span>
+                                                            {% elif 'delete' in codename or 'eliminar' in label %}
+                                                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle" style="font-size: 0.6rem;">ELIMINAR</span>
+                                                            {% else %}
+                                                                <span class="badge bg-light text-dark border" style="font-size: 0.6rem;">VER</span>
+                                                            {% endif %}
+                                                        </div>
+                                                        <div class="text-dark small fw-bold text-truncate" title="{{ p.name }}">
+                                                            {{ p.name|cut:"puede "|cut:"Can "|title }}
+                                                        </div>
+                                                    {% endwith %}
+                                                </label>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="text-center mt-5 d-flex justify-content-center gap-2">
+                    <a href="{% url 'lista_grupos' %}" class="btn btn-light border px-5">Cancelar</a>
+                    <button type="submit" class="btn btn-success btn-lg px-5 shadow">
+                        <i class="fas fa-save me-2"></i> Guardar Cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .accordion-button:not(.collapsed) { background-color: #f8f9fa; color: #198754; box-shadow: none; }
+    .hover-effect:hover { border-color: #198754 !important; background-color: #f0fff4; transform: translateY(-1px); transition: all 0.2s; }
+    .form-check-input:checked { background-color: #198754; border-color: #198754; }
+</style>
+
+<script>
+function toggleModulo(btn, containerId) {
+    const container = document.getElementById(containerId);
+    const checks = container.querySelectorAll('input[type="checkbox"]');
+    const allChecked = Array.from(checks).every(c => c.checked);
+    checks.forEach(c => c.checked = !allChecked);
+    btn.innerHTML = allChecked ? '<i class="fas fa-check-circle me-1"></i> Seleccionar Módulo' : '<i class="fas fa-minus-circle me-1"></i> Desmarcar Todo';
+}
+</script>
+{% endblock %}

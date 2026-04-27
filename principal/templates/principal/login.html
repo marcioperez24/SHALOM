@@ -1,0 +1,225 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Iniciar Sesión - Colegio Shalom</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- IMPORTANTE para que el responsive funcione -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f2f2f2;
+            margin: 0;
+            font-family: 'Poppins', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            color: #333;
+        }
+
+        .login-container {
+            background-color: #ffffff;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.15);
+            width: 100%;
+            max-width: 400px; /* Cambiado a un ancho más adaptable */
+            text-align: center;
+        }
+
+        .logo-login {
+            max-width: 100px;
+            height: auto;
+            margin: 0 auto 20px auto;
+            display: block;
+        }
+
+        h2.title {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        p.subtitle {
+            font-size: 0.95rem;
+            color: #666;
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+            font-size: 14px;
+            text-align: left;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 16px;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+            outline: none;
+        }
+
+        .login-button {
+            width: 100%;
+            padding: 14px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 10px;
+        }
+
+        .login-button:hover {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        .login-button:active {
+            transform: translateY(0);
+        }
+
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        .link-admin {
+            display: block;
+            margin-top: 20px;
+            color: #007bff;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s ease;
+        }
+
+        .link-admin:hover {
+            color: #0056b3;
+            text-decoration: underline;
+        }
+
+        /* --- NUEVO: Estilos para el footer de Technovision --- */
+        .technovision-footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee; /* Línea separadora sutil */
+        }
+        .technovision-footer p {
+            font-size: 0.8rem;
+            color: #999;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .technovision-footer img {
+            max-width: 120px; /* Ancho del logo */
+            height: auto;
+            opacity: 0.7; /* Sutil */
+        }
+        /* --- FIN NUEVOS ESTILOS --- */
+
+
+        /* ==============================
+           🔹 RESPONSIVE DESIGN 🔹
+        ============================== */
+
+        @media (max-width: 992px) {
+            .login-container {
+                max-width: 450px;
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .login-container {
+                max-width: 90%;
+                padding: 20px;
+            }
+            h2.title { font-size: 1.5rem; }
+            p.subtitle { font-size: 0.9rem; }
+            .logo-login { max-width: 90px; }
+        }
+
+        @media (max-width: 576px) {
+            body {
+                padding: 15px;
+                align-items: flex-start;
+            }
+            .login-container {
+                max-width: 100%;
+                padding: 20px 15px;
+                border-radius: 8px;
+                box-shadow: none;
+            }
+            h2.title { font-size: 1.4rem; }
+            .login-button { font-size: 0.9rem; padding: 12px; }
+            input[type="text"],
+            input[type="password"] {
+                font-size: 0.9rem;
+                padding: 10px 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <img src="{% static 'principal/img/Shalom.ico' %}" alt="Logo de la Institución" class="logo-login">
+
+        <h2 class="title">Colegio Shalom</h2>
+        <p class="subtitle">Inicia sesión para acceder al panel del sistema</p>
+
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="login-button">Login</button>
+        </form>
+
+        <a href="/admin" class="link-admin">Acceder como administrador</a>
+
+        <!-- 
+        =============================================================
+          NUEVO: Logo Technovision
+        =============================================================
+        Asegúrate de que la ruta 'principal/img/technovision_logo.png' sea correcta.
+        -->
+        <div class="technovision-footer">
+            <p>Powered by</p>
+            <!-- Ajusta el nombre del archivo 'technovision_logo.png' si es diferente -->
+            <img src="{% static 'principal/img/Technovision.png' %}" alt="Logo Technovision">
+        </div>
+        <!-- Fin Nuevo -->
+
+    </div>
+</body>
+</html>

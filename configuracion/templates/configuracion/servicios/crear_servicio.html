@@ -1,0 +1,70 @@
+{% extends 'principal/base.html' %}
+
+{% block title %}Crear Servicio{% endblock %}
+
+{% block page_title %}Crear Servicio{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-plus-circle"></i> Formulario de Creación de Servicio</h6>
+            </div>
+            <div class="card-body">
+                <form method="post" class="user">
+                    {% csrf_token %}
+
+                    <div class="form-group mb-3">
+                        <label for="{{ form.NombreServicio.id_for_label }}">Nombre del Servicio</label>
+                        {{ form.NombreServicio }}
+                        {% if form.NombreServicio.errors %}
+                        <div class="text-danger">
+                            {% for error in form.NombreServicio.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                        <label for="{{ form.Precio.id_for_label }}">Precio</label>
+                        {{ form.Precio }}
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label for="{{ form.NivelID.id_for_label }}">Nivel</label>
+                        {{ form.NivelID }}
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label for="{{ form.TipoServicioID.id_for_label }}">Tipo de Servicio</label>
+                        {{ form.TipoServicioID }}
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label for="{{ form.Anio.id_for_label }}">Año</label>
+                        {{ form.Anio }}
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label for="{{ form.FechaCreacion.id_for_label }}">Fecha de Creación</label>
+                        {{ form.FechaCreacion }}
+                    </div>
+                    
+                    <div class="form-group form-check custom-control custom-checkbox mb-4">
+                        <label class="form-check-label" for="{{ form.Activo.id_for_label }}">{{ form.Activo.label }}</label>
+                        {{ form.Activo }}
+                    </div>
+
+                    <hr>
+                    <div class="d-flex justify-content-end">
+                        <a href="{% url 'configuracion:listar_servicios' %}" class="btn btn-secondary me-2">Cancelar</a>
+                        <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,249 @@
+{% extends 'principal/base.html' %}
+
+{% block title %}Ingreso de Notas{% endblock %}
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+{% block content %}
+<div class="container mt-4">
+    
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h4 class="mb-1 fw-bold text-primary text-uppercase">{{ carga.materia.NombreMateria }}</h4>
+            <h5 class="text-muted">{{ carga.nivel.NombreNivel }} - Sección "{{ carga.seccion.NombreSeccion }}"</h5>
+        </div>
+        <div>
+            {% if semestre_seleccionado and corte_seleccionado %}
+                {% if perms.docentes.crear_docdocentes %}
+                <a href="{% url 'archivar_acta_digital' carga.id %}?semestre={{ semestre_seleccionado }}&corte={{ corte_seleccionado }}" 
+                   class="btn btn-secondary me-2 shadow-sm"
+                   title="Generar PDF y guardar en mis documentos">
+                    <i class="fas fa-file-archive me-2"></i> Archivar PDF
+                </a>
+                {%endif%}
+
+                <a href="{% url 'imprimir_acta_notas' carga.id %}?semestre={{ semestre_seleccionado }}&corte={{ corte_seleccionado }}" 
+                   class="btn btn-info text-white me-2 shadow-sm" 
+                   target="_blank"
+                   title="Ver vista de impresión">
+                    <i class="fas fa-print me-2"></i> Imprimir Acta
+                </a>
+
+            {% endif %}
+
+            <a href="{% url 'panel_docente' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i> Volver
+            </a>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 mb-4 bg-light">
+        <div class="card-body">
+            <form method="GET" id="formFiltros" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">1. Seleccionar Semestre</label>
+                    <select name="semestre" class="form-select" onchange="document.getElementById('formFiltros').submit()">
+                        <option value="">-- Seleccione --</option>
+                        {% for s in semestres %}
+                            <option value="{{ s.SemestreID }}" {% if s.SemestreID == semestre_seleccionado %}selected{% endif %}>
+                                {{ s.NombreSemestre }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">2. Seleccionar Corte / Evaluación</label>
+                    <select name="corte" class="form-select" id="selectCorte">
+                        <option value="">-- Seleccione --</option>
+                        {% for c in cortes %}
+                            <option value="{{ c.CorteID }}" {% if c.CorteID == corte_seleccionado %}selected{% endif %}>
+                                {{ c.NombreCorte }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary w-100 fw-bold" {% if not semestre_seleccionado %}disabled{% endif %}>
+                        <i class="fas fa-check me-2"></i> Cargar Acta
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if semestre_seleccionado and corte_seleccionado %}
+        <form method="POST">
+            {% csrf_token %}
+            <div class="card shadow border-0">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 text-gray-800 font-weight-bold">Listado de Estudiantes</h5>
+                    <span class="badge bg-primary">{{ alumnos_notas|length }} Estudiantes</span>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 5%; text-align: center;">#</th>
+                                <th style="width: 45%;">Estudiante</th>
+                                <th style="width: 25%; text-align: center;">Nota Cuantitativa (0-100)</th>
+                                <th style="width: 25%; text-align: center;">Nivel (Automático)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in alumnos_notas %}
+                            <tr>
+                                <td class="text-center">{{ forloop.counter }}</td>
+                                <td>
+                                    <div class="fw-bold">{{ item.inscripcion.EstudianteID.NombreCompleto }}</div>
+                                    <small class="text-muted">{{ item.inscripcion.EstudianteID.Codigo_MINED }}</small>
+                                </td>
+                                
+                                <td>
+                                    <input type="number" 
+                                           name="nota_{{ item.inscripcion.InscripcionID }}" 
+                                           class="form-control text-center fw-bold input-nota mx-auto" 
+                                           style="max-width: 150px; font-size: 1.1em;"
+                                           min="0" max="100" step="0.01"
+                                           value="{{ item.nota.NotaCuantitativa|default:'' }}"
+                                           placeholder="0.00">
+                                </td>
+
+                                <td>
+                                    <input type="text" 
+                                           id="obs_{{ item.inscripcion.InscripcionID }}" 
+                                           name="obs_{{ item.inscripcion.InscripcionID }}" 
+                                           class="form-control form-control-sm fw-bold text-center mx-auto" 
+                                           style="max-width: 150px; background-color: #f8f9fa;"
+                                           value="{{ item.nota.NotaCualitativa|default:'' }}"
+                                           readonly 
+                                           tabindex="-1"> </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center py-5 text-muted">
+                                    <i class="fas fa-users-slash fa-3x mb-3 text-gray-300"></i>
+                                    <p>No hay estudiantes inscritos activos en esta materia.</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                {% if alumnos_notas %}
+                <div class="card-footer bg-white py-3 text-end sticky-bottom">
+                    <button type="submit" class="btn btn-success px-5 fw-bold shadow-sm">
+                        <i class="fas fa-save me-2"></i> GUARDAR CALIFICACIONES
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+        </form>
+    {% elif not semestre_seleccionado %}
+        <div class="alert alert-info text-center py-5 shadow-sm border-0">
+            <i class="fas fa-arrow-up fa-2x mb-3 text-info"></i>
+            <h5 class="fw-bold">Seleccione los criterios de evaluación</h5>
+            <p class="mb-0">Por favor seleccione un Semestre y un Corte en la parte superior para cargar el acta.</p>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        // 1. CONFIGURACIÓN DE SWEETALERT (ALERTAS)
+        {% if messages %}
+            {% for message in messages %}
+                // Si es éxito (verde)
+                if ("{{ message.tags }}" === "success") {
+                    Swal.fire({
+                        title: '¡Operación Exitosa!',
+                        text: "{{ message }}",
+                        icon: 'success',
+                        confirmButtonText: 'Aceptar',
+                        confirmButtonColor: '#198754', // Verde Bootstrap
+                        timer: 4000,
+                        timerProgressBar: true
+                    });
+                } else if ("{{ message.tags }}" === "error") {
+                    // Si es error (rojo)
+                    Swal.fire({
+                        title: 'Error',
+                        text: "{{ message }}",
+                        icon: 'error',
+                        confirmButtonColor: '#dc3545'
+                    });
+                } else {
+                    // Advertencias (amarillo)
+                    Swal.fire({
+                        title: 'Atención',
+                        text: "{{ message }}",
+                        icon: 'warning',
+                        confirmButtonColor: '#ffc107'
+                    });
+                }
+            {% endfor %}
+        {% endif %}
+
+        // 2. FUNCIÓN PARA CALCULAR LA LETRA (AA, AS, AF, AI)
+        function calcularCualitativa(nota) {
+            if (nota === "" || isNaN(nota)) return "";
+            let valor = parseFloat(nota);
+            
+            if (valor >= 90) return "AA"; // Aprendizaje Avanzado
+            if (valor >= 76) return "AS"; // Aprendizaje Satisfactorio
+            if (valor >= 60) return "AF"; // Aprendizaje Fundamental
+            if (valor >= 0)  return "AI"; // Aprendizaje Inicial
+            return "";
+        }
+
+        // 3. FUNCIÓN PARA EL COLOR DEL TEXTO
+        function getColor(letra) {
+            if (letra === "AA") return "#198754"; // Verde
+            if (letra === "AS") return "#0d6efd"; // Azul
+            if (letra === "AF") return "#fd7e14"; // Naranja
+            if (letra === "AI") return "#dc3545"; // Rojo
+            return "#212529"; // Negro por defecto
+        }
+
+        // 4. EVENT LISTENER PARA CADA INPUT DE NOTA
+        document.querySelectorAll('.input-nota').forEach(input => {
+            
+            // Evento al escribir
+            input.addEventListener('input', function() {
+                let nota = this.value;
+                
+                // Validación de rango
+                if(nota > 100) { 
+                    this.value = 100; 
+                    nota = 100; 
+                    // Alerta pequeña tipo 'Toast' si se pasan
+                    const Toast = Swal.mixin({
+                        toast: true, position: 'top-end', showConfirmButton: false, timer: 2000
+                    });
+                    Toast.fire({ icon: 'warning', title: 'La nota máxima es 100' });
+                }
+                if(nota < 0) { this.value = 0; nota = 0; }
+
+                // Cálculo
+                let letra = calcularCualitativa(nota);
+
+                // Buscar el campo hermano donde va la letra
+                // El name es "nota_123", extraemos el ID "123"
+                let idInscripcion = this.name.split('_')[1]; 
+                let inputObs = document.getElementById('obs_' + idInscripcion);
+                
+                if (inputObs) {
+                    inputObs.value = letra;
+                    inputObs.style.color = getColor(letra); // Pintar la letra
+                    inputObs.style.fontWeight = "bold";
+                }
+            });
+
+            // Ejecutar una vez al cargar la página para colorear las notas que ya venían de la BD
+            input.dispatchEvent(new Event('input'));
+        });
+    });
+</script>
+{% endblock %}

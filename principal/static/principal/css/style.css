@@ -1,0 +1,633 @@
+/* principal/static/principal/css/style.css */
+
+:root {
+    /* --- VARIABLES TEMA CLARO PREDETERMINADO --- */
+    --primary-blue: #4f46e5;
+    --dark-blue: #3730a3;
+    --primary-blue-light: #818cf8;
+    --sidebar-bg: #ffffff;
+    --sidebar-border: #e5e7eb;
+    --card-bg: #ffffff;
+    --card-shadow: rgba(17, 24, 39, 0.05);
+    --card-hover-shadow: rgba(17, 24, 39, 0.1);
+    --text-color-dark: #111827;
+    --text-color-medium: #4b5563;
+    --text-color-light: #9ca3af;
+    --red-priority: #ef4444;
+    --orange-priority: #f97316;
+    --green-status: #10b981;
+    --yellow-status: #f59e0b;
+    --table-header-bg: #f9fafb;
+    --body-bg: #f3f4f6;
+    --font-family-base: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* ==========================================================
+    ESTILOS BASE (TEMA CLARO)
+    ========================================================== */
+
+body {
+    font-family: var(--font-family-base);
+    background-color: var(--body-bg);
+    margin: 0;
+    color: var(--text-color-dark);
+    overflow-x: hidden;
+    /* Transición suave para el cambio de tema */
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+#wrapper {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Sidebar */
+#sidebar-wrapper {
+    min-width: 270px;
+    max-width: 270px;
+    background-color: var(--sidebar-bg);
+    border-right: 1px solid var(--sidebar-border);
+    transition: margin .25s ease-out, background-color 0.3s ease, border-color 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    display: flex;
+    flex-direction: column;
+}
+
+#sidebar-wrapper .sidebar-heading {
+    padding: 1.5rem 1.25rem;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--primary-blue);
+    border-bottom: 1px solid var(--sidebar-border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+#sidebar-wrapper .sidebar-heading small {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-color-light);
+    margin-top: 5px;
+}
+
+
+#sidebar-wrapper .list-group {
+    width: 100%;
+    flex-grow: 1;
+}
+
+#sidebar-wrapper .list-group-item {
+    color: var(--text-color-dark);
+    background-color: var(--sidebar-bg);
+    padding: 1rem 1.25rem;
+    border: none;
+    border-radius: 8px; /* Rounded corners for premium feel */
+    margin: 0.2rem 0.5rem; /* Margin to detach from edges */
+    transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+#sidebar-wrapper .list-group-item .fas,
+#sidebar-wrapper .list-group-item .fa-solid {
+    font-size: 1.1rem;
+    width: 20px;
+    text-align: center;
+    color: var(--text-color-medium);
+    transition: color 0.2s ease;
+    /* Para el hover */
+}
+
+
+#sidebar-wrapper .list-group-item:hover {
+    background-color: var(--sidebar-border);
+    color: var(--primary-blue);
+    transform: translateX(4px); /* Micro-animation */
+}
+
+#sidebar-wrapper .list-group-item:hover .fas,
+#sidebar-wrapper .list-group-item:hover .fa-solid {
+    color: var(--primary-blue);
+}
+
+#sidebar-wrapper .list-group-item.active {
+    background-color: var(--primary-blue-light);
+    background-image: linear-gradient(135deg, var(--primary-blue), var(--dark-blue)); /* Gradient active */
+    color: white;
+    font-weight: 600;
+    border-radius: 8px;
+    position: relative;
+    box-shadow: 0 4px 6px rgba(79, 70, 229, 0.25);
+    left: 0;
+}
+
+#sidebar-wrapper .list-group-item.active .fas,
+#sidebar-wrapper .list-group-item.active .fa-solid {
+    color: white;
+}
+
+
+
+/* Page Content */
+#page-content-wrapper {
+    flex-grow: 1;
+    /* Ajustado para el padding-left del JS en base.html */
+    padding: 0;
+}
+
+/* El padding de 30px se añade al container-fluid dentro de base.html para que el navbar cubra todo el ancho */
+#page-content-wrapper .container-fluid {
+    padding: 30px;
+}
+
+
+/* Navbar/Header */
+#page-content-wrapper .navbar-custom {
+    background-color: var(--body-bg);
+    /* Usamos body-bg o card-bg para el fondo fijo */
+    border-bottom: 1px solid var(--sidebar-border);
+    padding: 1rem 0;
+    /* Reducido para que no quede tanto espacio entre navbar y contenido */
+    margin-bottom: 0;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+#page-content-wrapper .navbar-custom .navbar-brand-custom {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--primary-blue);
+    padding-left: 15px;
+    border-left: 4px solid var(--primary-blue);
+}
+
+/* Cards (Estilos generales) */
+.dashboard-card {
+    background-color: var(--card-bg);
+    border-radius: 12px;
+    box-shadow: 0 4px 15px var(--card-shadow);
+    padding: 25px;
+    margin-bottom: 30px;
+    border: 1px solid var(--sidebar-border); /* Subtle border */
+    transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.dashboard-card:hover {
+    box-shadow: 0 10px 25px var(--card-hover-shadow);
+    transform: translateY(-4px); /* Hover lift */
+}
+
+/* KPI Cards */
+.kpi-card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    position: relative;
+}
+
+.kpi-card .kpi-value {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--primary-blue);
+    margin-bottom: 5px;
+    line-height: 1;
+}
+
+.kpi-card .kpi-description {
+    font-size: 0.85rem;
+    color: var(--text-color-light);
+    margin-bottom: 15px;
+}
+
+.kpi-card .kpi-icon {
+    position: absolute;
+    top: 25px;
+    right: 25px;
+    font-size: 2.5rem;
+    color: rgba(0, 0, 0, 0.08);
+}
+
+/* Las clases de color en el icono deben usar rgba(COLOR_VARIABLE, 0.2) */
+
+.kpi-card .kpi-change {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--green-status);
+}
+
+/* Recent Tickets Table */
+.recent-tickets-card .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--sidebar-border);
+    transition: border-color 0.3s ease;
+}
+
+.recent-tickets-card .card-header h3 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.recent-tickets-card .btn-view-all {
+    background-color: transparent;
+    border: 1px solid var(--primary-blue);
+    color: var(--primary-blue);
+    padding: 8px 15px;
+    border-radius: 5px;
+    font-size: 0.85rem;
+    text-decoration: none;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.recent-tickets-card .btn-view-all:hover {
+    background-color: var(--primary-blue);
+    color: white;
+}
+
+.tickets-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 10px;
+}
+
+.tickets-table th {
+    text-align: left;
+    padding: 10px 15px;
+    background-color: var(--table-header-bg);
+    font-weight: 600;
+    color: var(--text-color-medium);
+    font-size: 0.9rem;
+    white-space: nowrap;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.tickets-table th:first-child {
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+}
+
+.tickets-table th:last-child {
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+
+.tickets-table td {
+    padding: 15px;
+    background-color: var(--card-bg);
+    border: 1px solid transparent;
+    border-bottom: 1px solid var(--sidebar-border);
+    font-size: 0.9rem;
+    vertical-align: middle;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
+}
+
+.tickets-table tr:not(:last-child) td {
+    margin-bottom: 10px;
+}
+
+.tickets-table td:first-child {
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+}
+
+.tickets-table td:last-child {
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+
+.priority-badge {
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: inline-block;
+    min-width: 60px;
+    text-align: center;
+}
+
+.priority-badge.high {
+    background-color: var(--red-priority);
+    color: white;
+}
+
+.priority-badge.medium {
+    background-color: var(--orange-priority);
+    color: white;
+}
+
+.priority-badge.low {
+    background-color: #007bff;
+    color: white;
+}
+
+.priority-badge.urgent {
+    background-color: #6f42c1;
+    color: white;
+}
+
+/* Status Badges */
+.status-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--text-color-dark);
+    /* Color base del texto */
+}
+
+.status-badge .status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.status-badge.open {
+    color: var(--orange-priority);
+}
+
+.status-badge.open .status-dot {
+    background-color: var(--orange-priority);
+}
+
+.status-badge.in-progress {
+    color: var(--yellow-status);
+}
+
+.status-badge.in-progress .status-dot {
+    background-color: var(--yellow-status);
+}
+
+.status-badge.resolved {
+    color: var(--green-status);
+}
+
+.status-badge.resolved .status-dot {
+    background-color: var(--green-status);
+}
+
+.status-badge.closed {
+    color: var(--text-color-light);
+}
+
+.status-badge.closed .status-dot {
+    background-color: var(--text-color-light);
+}
+
+
+/* Knowledge Base Card */
+.knowledge-base-card .card-header {
+    margin-bottom: 20px;
+}
+
+.knowledge-base-card .card-header h3 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.knowledge-base-card .search-input {
+    width: 100%;
+    padding: 10px 15px;
+    border: 1px solid var(--sidebar-border);
+    color: var(--text-color-dark);
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    margin-top: 15px;
+    font-size: 0.9rem;
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+.knowledge-base-card .search-input::placeholder {
+    color: var(--text-color-light);
+}
+
+.knowledge-base-card .article-list {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0;
+}
+
+.knowledge-base-card .article-list li {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--sidebar-border);
+    color: var(--text-color-dark);
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: border-color 0.3s ease, color 0.3s ease;
+}
+
+.knowledge-base-card .article-list li:last-child {
+    border-bottom: none;
+}
+
+.knowledge-base-card .article-list li .fas {
+    color: var(--primary-blue);
+    font-size: 1.1rem;
+}
+
+.knowledge-base-card .btn-explore-all {
+    background-color: transparent;
+    border: 1px solid var(--sidebar-border);
+    color: var(--text-color-medium);
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    text-decoration: none;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.knowledge-base-card .btn-explore-all:hover {
+    background-color: var(--sidebar-border);
+    color: var(--primary-blue);
+    border-color: var(--primary-blue);
+}
+
+
+/* ==========================================================
+    TEMA OSCURO (AÑADIDO Y CORREGIDO PARA VISIBILIDAD) 🌙
+    ========================================================== */
+
+body.dark-theme {
+    /* --- Variables de Tema Oscuro (Sobrescriben el Tema Claro) --- */
+    --body-bg: #0f172a;
+    --sidebar-bg: #1e293b;
+    --sidebar-border: #334155;
+    --card-bg: #1e293b;
+    --card-shadow: rgba(0, 0, 0, 0.25);
+    --card-hover-shadow: rgba(0, 0, 0, 0.4);
+    --text-color-dark: #f8fafc;
+    --text-color-medium: #cbd5e1;
+    --text-color-light: #94a3b8;
+    --table-header-bg: #0f172a;
+    --primary-blue: #6366f1; /* Lighter Indigo for Dark mode */
+    --dark-blue: #4f46e5;
+    --primary-blue-light: #818cf8;
+
+    background-color: var(--body-bg);
+    color: var(--text-color-dark);
+}
+
+/* SIDEBAR CORRECCIONES VISIBLES */
+body.dark-theme #sidebar-wrapper {
+    background-color: var(--sidebar-bg);
+    border-color: var(--sidebar-border);
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+}
+
+body.dark-theme #sidebar-wrapper .sidebar-heading {
+    border-bottom-color: var(--sidebar-border);
+}
+
+body.dark-theme #sidebar-wrapper .sidebar-heading small {
+    color: var(--text-color-light);
+}
+
+/* Ítems no activos: Texto y Fondo */
+body.dark-theme #sidebar-wrapper .list-group-item {
+    color: var(--text-color-medium);
+    background-color: var(--sidebar-bg);
+}
+
+/* Ítems no activos: Íconos */
+body.dark-theme #sidebar-wrapper .list-group-item .fas,
+body.dark-theme #sidebar-wrapper .list-group-item .fa-solid {
+    color: var(--text-color-medium);
+}
+
+/* Ítems Hover */
+body.dark-theme #sidebar-wrapper .list-group-item:hover {
+    background-color: #2a2a2a;
+    color: var(--primary-blue);
+}
+
+body.dark-theme #sidebar-wrapper .list-group-item:hover .fas,
+body.dark-theme #sidebar-wrapper .list-group-item:hover .fa-solid {
+    color: var(--primary-blue);
+}
+
+/* Ítems Activos (usarán las variables de --primary-blue y white por defecto) */
+
+/* NAVBAR / HEADER */
+body.dark-theme #page-content-wrapper .navbar-custom {
+    background-color: var(--body-bg);
+    border-bottom-color: var(--sidebar-border);
+}
+
+/* CARDS Y CONTENEDORES */
+body.dark-theme .dashboard-card {
+    background-color: var(--card-bg);
+    box-shadow: 0 4px 15px var(--card-shadow);
+}
+
+/* TABLA */
+body.dark-theme .tickets-table th {
+    background-color: var(--table-header-bg);
+    color: var(--text-color-medium);
+}
+
+body.dark-theme .tickets-table td {
+    background-color: var(--card-bg);
+    box-shadow: 0 2px 5px var(--card-shadow);
+}
+
+
+/* ==========================================================
+    CORRECCIÓN DE VISIBILIDAD DE TEXTO EN TEMA OSCURO
+    ========================================================== */
+
+/* 1. CLASE text-muted (Descripción debajo del título) */
+body.dark-theme .text-muted {
+    color: var(--text-color-medium) !important;
+}
+
+/* 2. TÍTULOS Y TEXTOS DARK/SECONDARY */
+body.dark-theme .text-dark {
+    color: var(--text-color-dark) !important;
+}
+
+body.dark-theme .text-secondary {
+    color: var(--text-color-dark) !important;
+}
+
+/* 3. TEXTO DESCRIPTIVO DENTRO DE LAS TARJETAS */
+body.dark-theme .card-body p.card-text {
+    color: var(--text-color-dark);
+}
+
+/* 4. LABELS Y CHECKBOXES DENTRO DE TARJETAS (Boletín) */
+body.dark-theme .form-check-label {
+    color: var(--text-color-dark);
+}
+
+body.dark-theme .form-text {
+    color: var(--text-color-medium) !important;
+}
+
+/* 5. INPUTS Y SELECTS */
+body.dark-theme .form-select,
+body.dark-theme .form-control {
+    background-color: #2a2a2a;
+    color: var(--text-color-dark);
+    border-color: var(--sidebar-border);
+}
+
+body.dark-theme .form-select:focus,
+body.dark-theme .form-control:focus {
+    /* Destacar el focus */
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 0.25rem rgba(74, 163, 255, 0.25);
+}
+
+
+/* 6. BOTÓN ACTIVO DEL BREADCRUMB (Si se usa Bootstrap) */
+body.dark-theme .btn-secondary.active {
+    background-color: var(--text-color-light) !important;
+    color: var(--body-bg) !important;
+    border-color: var(--text-color-light) !important;
+}
+
+/* 7. CORRECCIÓN CLAVE: JQUERY UI AUTOCOMPLETE */
+/* Sobrescribe los estilos por defecto de jQuery UI para el tema oscuro */
+body.dark-theme .ui-autocomplete {
+    background-color: #2a2a2a !important;
+    /* Fondo oscuro del menú */
+    border: 1px solid var(--sidebar-border) !important;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.45) !important;
+    z-index: 1050;
+    /* Asegura que esté sobre otros elementos */
+}
+
+/* Texto de los elementos no seleccionados */
+body.dark-theme .ui-menu-item-wrapper {
+    color: var(--text-color-dark) !important;
+    /* Texto gris claro/blanco */
+    padding: 0.5rem 1rem;
+}
+
+/* Elemento seleccionado (hover/active) */
+body.dark-theme .ui-menu-item-wrapper.ui-state-active {
+    background-color: var(--primary-blue) !important;
+    /* Fondo azul */
+    color: white !important;
+    /* Texto blanco sobre azul */
+}
+
+/* ------------------------------------------- */
+/* FIN DE style.css                            */
+/* ------------------------------------------- */

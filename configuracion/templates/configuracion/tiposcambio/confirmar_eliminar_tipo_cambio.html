@@ -1,0 +1,30 @@
+{% extends 'principal/base.html' %}
+
+{% block title %}Confirmar Eliminación{% endblock %}
+
+{% block page_title %}Confirmar Eliminación{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-danger"><i class="fas fa-exclamation-triangle"></i> Confirmar Eliminación</h6>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning" role="alert">
+                    <p>¿Estás seguro de que quieres eliminar el tipo de cambio de **{{ tipo_cambio.MonedaOrigen }} a {{ tipo_cambio.MonedaDestino }}**?</p>
+                    <p>Esta acción es permanente y no se puede deshacer.</p>
+                </div>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-end">
+                        <a href="{% url 'configuracion:listar_tipos_cambio' %}" class="btn btn-secondary me-2">Cancelar</a>
+                        <button type="submit" class="btn btn-danger"><i class="fas fa-trash"></i> Confirmar Eliminación</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

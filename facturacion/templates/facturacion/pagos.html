@@ -1,0 +1,170 @@
+{% extends 'principal/base.html' %}
+
+{% block page_title %}
+Historial de Pagos
+{% endblock %}
+
+{% block content %}
+<style>
+    /* --- Estilos Personalizados para la Paginación --- */
+    .pagination-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-top: 2rem;
+        margin-bottom: 2rem;
+        gap: 1rem;
+    }
+
+    .custom-pagination {
+        background-color: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 12px 25px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        display: inline-flex;
+        align-items: center;
+        gap: 20px; /* Espacio entre enlaces */
+        font-size: 0.95rem;
+    }
+
+    .custom-pagination a {
+        text-decoration: none;
+        color: #0d6efd; /* Azul Bootstrap */
+        font-weight: 600;
+        transition: color 0.2s;
+        cursor: pointer;
+    }
+
+    .custom-pagination a:hover {
+        color: #004494;
+        text-decoration: underline;
+    }
+
+    .custom-pagination a.disabled {
+        color: #adb5bd; /* Gris claro */
+        pointer-events: none;
+        cursor: default;
+        text-decoration: none;
+    }
+
+    .pagination-text {
+        font-weight: 700;
+        color: #212529;
+        font-size: 1rem;
+    }
+
+    .pagination-info {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+</style>
+
+<div class="container mt-5">
+    <h2>{{ titulo }}</h2>
+    <hr>
+    
+    <div class="mb-4">
+        <form method="GET" action="">
+            <div class="input-group">
+                <input type="text" name="q" class="form-control" placeholder="Buscar estudiante por nombre..." value="{{ query }}">
+                <button class="btn btn-primary" type="submit">Buscar</button>
+                {% if query %}
+                    <a href="." class="btn btn-secondary">Limpiar</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+    
+    <div class="card shadow-sm p-4">
+        <div class="table-responsive">
+            <table class="table table-hover" id="estudiantesTable">
+                <thead>
+                    <tr>
+                        <th>Nombre del Estudiante</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for estudiante in estudiantes %}
+                    <tr>
+                        <td>{{ estudiante.NombreCompleto }}</td>
+                        <td>
+                            <a href="{% url 'facturacion:historial_pagos' estudiante.EstudianteID %}" class="btn btn-sm btn-info">Ver Historial</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="2" class="text-center text-muted py-4">
+                            No se encontraron estudiantes con ese nombre.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if estudiantes.has_other_pages %}
+        <div class="pagination-container">
+            
+            <div class="custom-pagination">
+                {% if estudiantes.number > 1 %}
+                    <a href="?page=1{% if query %}&q={{ query }}{% endif %}">Primera</a>
+                {% else %}
+                    <a class="disabled">Primera</a>
+                {% endif %}
+
+                {% if estudiantes.has_previous %}
+                    <a href="?page={{ estudiantes.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">Anterior</a>
+                {% else %}
+                    <a class="disabled">Anterior</a>
+                {% endif %}
+
+                <span class="pagination-text">
+                    Página {{ estudiantes.number }} de {{ estudiantes.paginator.num_pages }}
+                </span>
+
+                {% if estudiantes.has_next %}
+                    <a href="?page={{ estudiantes.next_page_number }}{% if query %}&q={{ query }}{% endif %}">Siguiente</a>
+                {% else %}
+                    <a class="disabled">Siguiente</a>
+                {% endif %}
+
+                {% if estudiantes.number < estudiantes.paginator.num_pages %}
+                    <a href="?page={{ estudiantes.paginator.num_pages }}{% if query %}&q={{ query }}{% endif %}">Última</a>
+                {% else %}
+                    <a class="disabled">Última</a>
+                {% endif %}
+            </div>
+
+            <div class="pagination-info">
+                Mostrando {{ estudiantes.start_index }} - {{ estudiantes.end_index }} de {{ estudiantes.paginator.count }} estudiantes.
+            </div>
+
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const table = document.getElementById('estudiantesTable');
+    const rows = table.getElementsByClassName('estudiante-row');
+
+    searchInput.addEventListener('keyup', function() {
+        const filter = searchInput.value.toLowerCase();
+        
+        for (let i = 0; i < rows.length; i++) {
+            const nombre = rows[i].getAttribute('data-nombre').toLowerCase();
+            
+            if (nombre.includes(filter)) {
+                rows[i].style.display = '';
+            } else {
+                rows[i].style.display = 'none';
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

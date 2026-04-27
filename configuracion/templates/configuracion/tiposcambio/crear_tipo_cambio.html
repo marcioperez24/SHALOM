@@ -1,0 +1,109 @@
+{% extends 'principal/base.html' %}
+
+{% block title %}Crear Tipo de Cambio{% endblock %}
+
+{% block page_title %}Crear Tipo de Cambio{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-plus-circle"></i> Formulario de Creación</h6>
+            </div>
+            <div class="card-body">
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger" role="alert">
+                    <strong>¡Error!</strong> Por favor, corrige los siguientes errores:
+                    <ul>
+                        {% for error in form.non_field_errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                
+                {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <form method="post" class="user">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6 form-group mb-3">
+                            <label for="{{ form.VigenciaInicio.id_for_label }}">{{ form.VigenciaInicio.label }}</label>
+                            {{ form.VigenciaInicio }}
+                            {% if form.VigenciaInicio.errors %}
+                                {% for error in form.VigenciaInicio.errors %}
+                                    <div class="text-danger mt-1">{{ error }}</div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 form-group mb-3">
+                            <label for="{{ form.VigenciaFin.id_for_label }}">{{ form.VigenciaFin.label }}</label>
+                            {{ form.VigenciaFin }}
+                            {% if form.VigenciaFin.errors %}
+                                {% for error in form.VigenciaFin.errors %}
+                                    <div class="text-danger mt-1">{{ error }}</div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 form-group mb-3">
+                            <label for="{{ form.CambioCompra.id_for_label }}">{{ form.CambioCompra.label }}</label>
+                            {{ form.CambioCompra }}
+                            {% if form.CambioCompra.errors %}
+                                {% for error in form.CambioCompra.errors %}
+                                    <div class="text-danger mt-1">{{ error }}</div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 form-group mb-3">
+                            <label for="{{ form.CambioVenta.id_for_label }}">{{ form.CambioVenta.label }}</label>
+                            {{ form.CambioVenta }}
+                            {% if form.CambioVenta.errors %}
+                                {% for error in form.CambioVenta.errors %}
+                                    <div class="text-danger mt-1">{{ error }}</div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 form-group mb-3">
+                            <label for="{{ form.MonedaOrigen.id_for_label }}">{{ form.MonedaOrigen.label }}</label>
+                            {{ form.MonedaOrigen }}
+                            {% if form.MonedaOrigen.errors %}
+                                {% for error in form.MonedaOrigen.errors %}
+                                    <div class="text-danger mt-1">{{ error }}</div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 form-group mb-3">
+                            <label for="{{ form.MonedaDestino.id_for_label }}">{{ form.MonedaDestino.label }}</label>
+                            {{ form.MonedaDestino }}
+                            {% if form.MonedaDestino.errors %}
+                                {% for error in form.MonedaDestino.errors %}
+                                    <div class="text-danger mt-1">{{ error }}</div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-end">
+                        <a href="{% url 'configuracion:listar_tipos_cambio' %}" class="btn btn-secondary me-2">Cancelar</a>
+                        <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

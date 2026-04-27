@@ -1,0 +1,151 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ titulo }}</title>
+    <!-- Incluye Bootstrap para estilos de impresión -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome para el ícono de impresión -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif; 
+            font-size: 10pt; 
+            padding: 20px;
+        }
+        .header-container {
+            border-bottom: 2px solid #ccc;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .logo-header { 
+            width: 70px; 
+            height: auto;
+            margin-bottom: 10px;
+        }
+        .title-block {
+            font-size: 16pt;
+            font-weight: bold;
+        }
+        .subtitle {
+            font-size: 12pt;
+            margin-bottom: 5px;
+        }
+        .table-saldos th {
+            background-color: #3f51b5 !important; 
+            color: white !important;
+            -webkit-print-color-adjust: exact; 
+            print-color-adjust: exact;
+        }
+        .total-row {
+            font-weight: bold;
+            background-color: #f0f0f0 !important;
+            border-top: 2px solid #333 !important;
+            -webkit-print-color-adjust: exact; 
+            print-color-adjust: exact;
+        }
+        /* CLAVE: Ocultar esta clase SOLO en la impresión */
+        .print-control {
+            margin-bottom: 20px;
+        }
+        @media print {
+            body { margin: 0; padding: 0; }
+            .container { width: 100%; padding: 0; }
+            .print-control {
+                display: none !important; /* Asegura que el botón desaparezca */
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <!-- Botón de Imprimir (Clase CLAVE: print-control) -->
+    <div class="d-flex justify-content-end print-control">
+        <button onclick="window.print()" class="btn btn-primary shadow-sm">
+            <i class="fas fa-print me-2"></i> Imprimir Documento
+        </button>
+    </div>
+
+    <!-- ENCABEZADO DE IMPRESIÓN -->
+    <div class="header-container">
+        <!-- Reemplaza con tu logo si lo tienes disponible en el contexto de impresión -->
+        <img src="{% static 'principal/img/Shalom.png' %}" alt="Logo del Colegio" class="logo-header">
+        <div style="font-size: 14pt; font-weight: bold;">COLEGIO SHALOM</div>
+        <div class="title-block">{{ titulo }}</div>
+        <div class="subtitle">
+            Concepto: <strong>{{ selected_servicio_nombre }}</strong> | Nivel: <strong>{{ selected_nivel_nombre }}</strong> | Año: <strong>{{ selected_anio }}</strong>
+        </div>
+        <p class="small text-muted mb-0">Generado el: {{ fecha_generacion|date:"d/m/Y H:i:s" }}</p>
+    </div>
+
+    <!-- RESUMEN TOTAL -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+             <div class="alert alert-danger text-center shadow-sm" role="alert">
+                <h4 class="alert-heading mb-0">SALDO GLOBAL PENDIENTE:</h4>
+                <h1 class="display-6 fw-bold mb-0">C$ {{ total_saldo_global|floatformat:2 }}</h1>
+            </div>
+        </div>
+         <div class="col-md-6">
+             <div class="alert alert-secondary text-center shadow-sm" role="alert">
+                <h4 class="alert-heading mb-0">TOTAL FACTURADO BRUTO:</h4>
+                <h1 class="display-6 fw-bold mb-0">C$ {{ total_facturado_global|floatformat:2 }}</h1>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- TABLA DE DETALLE -->
+    {% if reporte_saldos %}
+    <h5 class="mb-3">Detalle por Estudiante</h5>
+    <div class="table-responsive">
+        <table class="table table-bordered table-sm table-saldos">
+            <thead>
+                <tr>
+                    <th style="width: 25%;">Estudiante</th>
+                    <th class="text-end" style="width: 15%;">Facturado Bruto</th>
+                    <th class="text-end" style="width: 15%;">Pagado</th>
+                    <th class="text-end" style="width: 15%;">Descuento</th>
+                    <th class="text-end" style="width: 15%;">Saldo Pendiente</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in reporte_saldos %}
+                <tr>
+                    <td>{{ item.nombre_completo }}</td>
+                    <td class="text-end">{{ item.moneda }} {{ item.monto_servicio|floatformat:2 }}</td>
+                    <td class="text-end">{{ item.moneda }} {{ item.monto_pagado|floatformat:2 }}</td>
+                    <td class="text-end text-success">{{ item.moneda }} {{ item.monto_descuento|floatformat:2 }}</td>
+                    <td class="text-end fw-bolder text-danger">{{ item.moneda }} {{ item.saldo_pendiente|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr class="total-row">
+                    <td class="text-end fw-bolder">TOTAL GENERAL:</td>
+                    <td class="text-end fw-bolder text-dark">C$ {{ total_facturado_global|floatformat:2 }}</td>
+                    <td></td> 
+                    <td></td> 
+                    <td class="text-end fw-bolder text-danger">C$ {{ total_saldo_global|floatformat:2 }}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+    {% else %}
+        <div class="alert alert-warning text-center" role="alert">
+            No se encontraron saldos pendientes para los filtros seleccionados.
+        </div>
+    {% endif %}
+
+</div>
+
+<!-- La llamada a window.print() se realiza ahora al hacer clic en el botón -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,133 @@
+{% extends 'principal/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %} <!-- 1. CARGAMOS LOS TAGS DE CRISPY -->
+
+{% block page_title %}
+Editar Estudiante
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <h2>Editar Estudiante</h2>
+    <div class="card p-4">
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger" role="alert">
+                {% for error in form.non_field_errors %}
+                    {{ error }}
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Tu formulario ya tiene el enctype, lo cual es perfecto para la foto -->
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <!-- Tu estructura de TABS se mantiene, ¡es una buena idea! -->
+            <ul class="nav nav-tabs" id="myTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="personales-tab" data-bs-toggle="tab" data-bs-target="#personales" type="button" role="tab" aria-controls="personales" aria-selected="true">Datos Personales</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="familiares-tab" data-bs-toggle="tab" data-bs-target="#familiares" type="button" role="tab" aria-controls="familiares" aria-selected="false">Datos Familiares</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="otros-tab" data-bs-toggle="tab" data-bs-target="#otros" type="button" role="tab" aria-controls="otros" aria-selected="false">Otros Datos</button>
+                </li>
+            </ul>
+
+            <div class="tab-content mt-3" id="myTabContent">
+                
+                <!-- === PESTAÑA DATOS PERSONALES === -->
+                <div class="tab-pane fade show active" id="personales" role="tabpanel" aria-labelledby="personales-tab">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <!-- 2. Reemplazamos el HTML manual por el tag de Crispy -->
+                            {{ form.Codigo_MINED|as_crispy_field }}
+                            {{ form.NombreCompleto|as_crispy_field }}
+                            {{ form.Genero|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.FechaNacimiento|as_crispy_field }}
+                            {{ form.Direccion|as_crispy_field }}
+                            {{ form.ColegioProcedencia|as_crispy_field }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- === PESTAÑA DATOS FAMILIARES === -->
+                <div class="tab-pane fade" id="familiares" role="tabpanel" aria-labelledby="familiares-tab">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5 class="mt-3">Datos de la Madre</h5>
+                            <hr>
+                            {{ form.NombreMadre|as_crispy_field }}
+                            {{ form.CedulaMadre|as_crispy_field }}
+                            {{ form.TelefonoMadre|as_crispy_field }}
+                            {{ form.OcupacionMadre|as_crispy_field }}
+                            
+                            <h5 class="mt-4">Datos del Padre</h5>
+                            <hr>
+                            {{ form.NombrePadre|as_crispy_field }}
+                            {{ form.CedulaPadre|as_crispy_field }}
+                            {{ form.TelefonoPadre|as_crispy_field }}
+                            {{ form.OcupacionPadre|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            <h5 class="mt-3">Datos del Tutor</h5>
+                            <hr>
+                            {{ form.NombreTutor|as_crispy_field }}
+                            {{ form.CedulaTutor|as_crispy_field }}
+                            {{ form.TelefonoTutor|as_crispy_field }}
+                            {{ form.OcupacionTutor|as_crispy_field }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- === PESTAÑA OTROS DATOS === -->
+                <div class="tab-pane fade" id="otros" role="tabpanel" aria-labelledby="otros-tab">
+                    <div class="row">
+                        <div class="col-md-6">
+                            {{ form.ResponsableEP|as_crispy_field }}
+                            {{ form.FechaRetiro|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                             <!-- 3. MANTENEMOS TU CÓDIGO MANUAL PARA FOTOCARNET -->
+                             <!-- Esto es necesario para mostrar la vista previa de la imagen -->
+                             <div class="form-group mb-3">
+                                <label for="{{ form.FotoCarnet.id_for_label }}">Foto Carnet:</label>
+                                {% if estudiante.Fotocarnet %}
+                                    <div class="mb-2">
+                                        <a href="{{ estudiante.Fotocarnet.url }}" target="_blank">
+                                            <img src="{{ estudiante.Fotocarnet.url }}" alt="Foto actual del estudiante" style="max-width: 150px; border-radius: 5px;">
+                                        </a>
+                                        <br>
+                                        <small>Haz clic en la imagen para verla en grande.</small>
+                                    </div>
+                                {% endif %}
+                                {{ form.FotoCarnet }}
+                                {% if form.FotoCarnet.errors %}
+                                    <div class="text-danger">{{ form.FotoCarnet.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            
+            <button type="submit" class="btn btn-success mt-3">Guardar Cambios</button>
+            <a href="{% url 'Matricula:listar_estudiantes' %}" class="btn btn-secondary mt-3">Cancelar</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

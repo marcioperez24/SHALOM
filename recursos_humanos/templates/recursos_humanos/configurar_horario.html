@@ -1,0 +1,54 @@
+{% extends 'principal/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow border-0">
+                <div class="card-header bg-dark text-white py-3">
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-user-clock me-2"></i> Configurar Horario</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="bg-light p-3 rounded-circle me-3">
+                            <i class="fas fa-user fa-2x text-secondary"></i>
+                        </div>
+                        <div>
+                            <h4 class="mb-0 fw-bold">{{ empleado.nombres }} {{ empleado.apellidos }}</h4>
+                            <p class="text-muted mb-0">{{ empleado.cargo }}</p>
+                        </div>
+                    </div>
+
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small">Hora de Entrada</label>
+                                {{ form.entrada_esperada }}
+                                <small class="text-muted">Formato 24h (Ej: 07:30)</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small">Hora de Salida</label>
+                                {{ form.salida_esperada }}
+                                <small class="text-muted">Formato 24h (Ej: 16:00)</small>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold small">Margen de Tolerancia (Minutos)</label>
+                            {{ form.minutos_tolerancia }}
+                            <small class="text-muted d-block">Minutos de gracia antes de marcar como tardanza.</small>
+                        </div>
+
+                        <div class="d-flex justify-content-between pt-3">
+                            <a href="{% url 'recursos_humanos:expediente_empleado' empleado.pk %}" class="btn btn-secondary px-4">Cancelar</a>
+                            <button type="submit" class="btn btn-primary px-5">Guardar Configuración</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

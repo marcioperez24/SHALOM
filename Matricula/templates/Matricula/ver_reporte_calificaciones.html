@@ -1,0 +1,156 @@
+{% extends 'principal/base.html' %}
+{% load static %}
+
+{% block page_title %}
+Sábana de Notas
+{% endblock %}
+
+{% block extra_css %}
+<!-- Font Awesome para íconos -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+    /* Estilo para breadcrumb como botones */
+    .btn-breadcrumb .btn {
+        border-radius: 0; /* Esquinas cuadradas */
+    }
+    .btn-breadcrumb .btn:first-child {
+        border-top-left-radius: .25rem;
+        border-bottom-left-radius: .25rem;
+    }
+    .btn-breadcrumb .btn:last-child {
+        border-top-right-radius: .25rem;
+        border-bottom-right-radius: .25rem;
+    }
+     /* Estilo para notas reprobadas (añadido aquí también por si acaso) */
+    .nota-reprobada {
+        color: red !important;
+        font-weight: bold !important;
+    }
+    /* Fondo sutil para notas reprobadas en celdas coloreadas (opcional) */
+     .table-primary.bg-danger-subtle, .table-success.bg-danger-subtle {
+         background-color: #f8d7da !important; /* Rojo pálido */
+     }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+
+    <!-- Encabezado y Navegación -->
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+        <div>
+            <h2 class="text-primary mb-0">Calificaciones</h2>
+            <!-- 
+            =============================================================
+              BREADCRUMB MODIFICADO CON ESTILO DE BOTONES
+            =============================================================
+            -->
+            <nav aria-label="breadcrumb" class="mt-2 mb-4">
+                 <div class="btn-group btn-group-sm btn-breadcrumb" role="group" aria-label="Breadcrumb navigation">
+                     <a href="{% url 'Matricula:Matricula_home' %}" class="btn btn-outline-secondary">
+                         <i class="fas fa-home me-1"></i> Panel
+                     </a>
+                     <a href="{% url 'Matricula:reporte_calificaciones_filtro' %}" class="btn btn-outline-secondary">
+                         <i class="fas fa-filter me-1"></i> Filtros
+                     </a>
+                     <button type="button" class="btn btn-primary active" aria-current="page" disabled>
+                         <i class="fas fa-file-invoice me-1"></i> Reporte
+                     </button>
+                 </div>
+            </nav>
+            <!-- Fin Breadcrumb Modificado -->
+        </div>
+        <!-- Botón Exportar a Excel -->
+        <a href="{% url 'Matricula:exportar_reporte_excel' nivel.NivelID seccion.SeccionID %}" class="btn btn-success d-print-none">
+            <i class="fas fa-file-excel me-2"></i>Exportar a Excel
+        </a>
+    </div>
+
+    <!-- Resumen de Filtros -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Reporte para:</h5>
+            <p class="card-text mb-0">
+                <span class="fw-bold">Nivel:</span> {{ nivel.NombreNivel }} |
+                <span class="fw-bold">Sección:</span> {{ seccion.NombreSeccion }} |
+                <span class="fw-bold">Año Lectivo:</span> {{ anio }}
+            </p>
+        </div>
+    </div>
+
+    <!-- Estructura Vertical (por Materia) -->
+    {% for data in reporte_data %}
+    <div class="card shadow-lg mb-4">
+        <div class="card-header bg-dark text-white">
+            <h5 class="mb-0">Materia: {{ data.materia.NombreMateria }}</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover mb-0" style="font-size: 0.8rem;">
+                    <thead class="text-center align-middle">
+                        <tr class="table-secondary">
+                            <th rowspan="2">Estudiante</th>
+                            <th colspan="2">I Corte</th>
+                            <th colspan="2">II Corte</th>
+                            <th colspan="2" class="table-primary">I Sem.</th>
+                            <th colspan="2">III Corte</th>
+                            <th colspan="2">IV Corte</th>
+                            <th colspan="2" class="table-primary">II Sem.</th>
+                            <th colspan="2" class="table-success">Final</th>
+                        </tr>
+                        <tr class="table-secondary">
+                            <th>Nota</th><th>Equiv.</th>
+                            <th>Nota</th><th>Equiv.</th>
+                            <th class="table-primary">Nota</th><th class="table-primary">Equiv.</th>
+                            <th>Nota</th><th>Equiv.</th>
+                            <th>Nota</th><th>Equiv.</th>
+                            <th class="table-primary">Nota</th><th class="table-primary">Equiv.</th>
+                            <th class="table-success">Nota</th><th class="table-success">Equiv.</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in data.alumnos_data %}
+                        <tr>
+                            <td class="fw-bold text-nowrap">{{ item.alumno.NombreCompleto }}</td>
+                            <!-- C1 -->
+                            <td class="text-center {% if item.notas.c1.cuant is not None and item.notas.c1.cuant < 60 %}nota-reprobada{% endif %}">{{ item.notas.c1.cuant|floatformat:0|default:"-" }}</td>
+                            <td class="text-center {% if item.notas.c1.cuant is not None and item.notas.c1.cuant < 60 %}nota-reprobada{% endif %}">{{ item.notas.c1.cual|default:"-" }}</td>
+                            <!-- C2 -->
+                            <td class="text-center {% if item.notas.c2.cuant is not None and item.notas.c2.cuant < 60 %}nota-reprobada{% endif %}">{{ item.notas.c2.cuant|floatformat:0|default:"-" }}</td>
+                            <td class="text-center {% if item.notas.c2.cuant is not None and item.notas.c2.cuant < 60 %}nota-reprobada{% endif %}">{{ item.notas.c2.cual|default:"-" }}</td>
+                            <!-- S1 -->
+                            <td class="text-center table-primary fw-bold {% if item.notas.s1.cuant is not None and item.notas.s1.cuant < 60 %}bg-danger-subtle nota-reprobada{% endif %}">{{ item.notas.s1.cuant|floatformat:0|default:"-" }}</td>
+                            <td class="text-center table-primary fw-bold {% if item.notas.s1.cuant is not None and item.notas.s1.cuant < 60 %}bg-danger-subtle nota-reprobada{% endif %}">{{ item.notas.s1.cual|default:"-" }}</td>
+                            <!-- C3 -->
+                            <td class="text-center {% if item.notas.c3.cuant is not None and item.notas.c3.cuant < 60 %}nota-reprobada{% endif %}">{{ item.notas.c3.cuant|floatformat:0|default:"-" }}</td>
+                            <td class="text-center {% if item.notas.c3.cuant is not None and item.notas.c3.cuant < 60 %}nota-reprobada{% endif %}">{{ item.notas.c3.cual|default:"-" }}</td>
+                            <!-- C4 -->
+                            <td class="text-center {% if item.notas.c4.cuant is not None and item.notas.c4.cuant < 60 %}nota-reprobada{% endif %}">{{ item.notas.c4.cuant|floatformat:0|default:"-" }}</td>
+                            <td class="text-center {% if item.notas.c4.cuant is not None and item.notas.c4.cuant < 60 %}nota-reprobada{% endif %}">{{ item.notas.c4.cual|default:"-" }}</td>
+                            <!-- S2 -->
+                            <td class="text-center table-primary fw-bold {% if item.notas.s2.cuant is not None and item.notas.s2.cuant < 60 %}bg-danger-subtle nota-reprobada{% endif %}">{{ item.notas.s2.cuant|floatformat:0|default:"-" }}</td>
+                            <td class="text-center table-primary fw-bold {% if item.notas.s2.cuant is not None and item.notas.s2.cuant < 60 %}bg-danger-subtle nota-reprobada{% endif %}">{{ item.notas.s2.cual|default:"-" }}</td>
+                            <!-- NF -->
+                            <td class="text-center table-success fw-bold {% if item.notas.nf.cuant is not None and item.notas.nf.cuant < 60 %}bg-danger-subtle nota-reprobada{% endif %}">{{ item.notas.nf.cuant|floatformat:0|default:"-" }}</td>
+                            <td class="text-center table-success fw-bold {% if item.notas.nf.cuant is not None and item.notas.nf.cuant < 60 %}bg-danger-subtle nota-reprobada{% endif %}">{{ item.notas.nf.cual|default:"-" }}</td>
+                        </tr>
+                        {% endfor %}
+                         {% if not data.alumnos_data %}
+                         <tr>
+                            <td colspan="15" class="text-center text-muted py-3">No hay estudiantes matriculados en esta sección para el año seleccionado.</td>
+                         </tr>
+                         {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="alert alert-warning">
+        No se encontraron materias asignadas a este nivel o estudiantes matriculados.
+    </div>
+    {% endfor %}
+
+</div>
+{% endblock %}
+

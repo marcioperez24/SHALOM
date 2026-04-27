@@ -1,0 +1,67 @@
+{% extends 'principal/base.html' %}
+
+{% block title %}Editar Tipo de Cambio{% endblock %}
+
+{% block page_title %}Editar Tipo de Cambio{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-edit"></i> Editar Tipo de Cambio</h6>
+            </div>
+            <div class="card-body">
+                {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                <form method="post" class="user">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6 form-group mb-3">
+                            <label for="{{ form.VigenciaInicio.id_for_label }}">{{ form.VigenciaInicio.label }}</label>
+                            {{ form.VigenciaInicio }}
+                        </div>
+                        <div class="col-md-6 form-group mb-3">
+                            <label for="{{ form.VigenciaFin.id_for_label }}">{{ form.VigenciaFin.label }}</label>
+                            {{ form.VigenciaFin }}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 form-group mb-3">
+                            <label for="{{ form.CambioCompra.id_for_label }}">{{ form.CambioCompra.label }}</label>
+                            {{ form.CambioCompra }}
+                        </div>
+                        <div class="col-md-6 form-group mb-3">
+                            <label for="{{ form.CambioVenta.id_for_label }}">{{ form.CambioVenta.label }}</label>
+                            {{ form.CambioVenta }}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 form-group mb-3">
+                            <label for="{{ form.MonedaOrigen.id_for_label }}">{{ form.MonedaOrigen.label }}</label>
+                            {{ form.MonedaOrigen }}
+                        </div>
+                        <div class="col-md-6 form-group mb-3">
+                            <label for="{{ form.MonedaDestino.id_for_label }}">{{ form.MonedaDestino.label }}</label>
+                            {{ form.MonedaDestino }}
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-end">
+                        <a href="{% url 'configuracion:listar_tipos_cambio' %}" class="btn btn-secondary me-2">Cancelar</a>
+                        <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Actualizar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

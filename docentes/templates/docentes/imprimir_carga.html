@@ -1,0 +1,159 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Carga Académica - {{ docente.nombres }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <style>
+            /* ESTILOS GENERALES DE IMPRESIÓN */
+            body {
+                font-family: 'Times New Roman', Times, serif;
+                background: white;
+                color: black;
+                font-size: 12pt;
+                padding: 40px;
+                position: relative; /* Necesario para la marca de agua */
+            }
+
+            /* --- AQUÍ ESTÁ LA MAGIA DE LA MARCA DE AGUA --- */
+            body::before {
+                content: "";
+                position: fixed; /* Se mantiene fijo aunque haya varias páginas */
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                /* Cargamos tu logo */
+                background-image: url("{% static 'principal/img/Shalom.png' %}");
+                background-repeat: no-repeat;
+                background-position: center center;
+                background-size: 500px; /* Ajusta este número para hacerlo más grande/pequeño */
+                opacity: 0.12; /* Transparencia: 0.1 es muy suave, 0.2 es más visible */
+                z-index: -1; /* Se asegura que quede DETRÁS del texto */
+                
+                /* Truco para forzar a Chrome/Edge a imprimir el fondo */
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            /* ---------------------------------------------- */
+
+            .header-logo {
+                width: 80px;
+                height: auto;
+            }
+            .school-name {
+                font-weight: bold;
+                font-size: 18pt;
+                text-transform: uppercase;
+                margin-bottom: 5px;
+            }
+            .document-title {
+                font-weight: bold;
+                font-size: 14pt;
+                text-decoration: underline;
+                margin-top: 20px;
+                margin-bottom: 30px;
+            }
+            .table-custom th {
+                background-color: #f0f0f0 !important;
+                border: 1px solid black !important;
+                text-align: center;
+            }
+            .table-custom td {
+                border: 1px solid black !important;
+                vertical-align: middle;
+                background-color: transparent !important; /* Importante para ver la marca de agua */
+            }
+            .signature-line {
+                border-top: 1px solid black;
+                width: 80%;
+                margin: 0 auto;
+                margin-top: 80px;
+            }
+            
+            @media print {
+                .no-print { display: none !important; }
+                @page { margin: 2cm; }
+            }
+        </style>
+</head>
+<body>
+
+    <div class="fixed-top p-3 no-print bg-light border-bottom d-flex justify-content-between">
+        <a href="javascript:window.close();" class="btn btn-secondary">Cerrar Ventana</a>
+        <button onclick="window.print();" class="btn btn-primary">🖨️ Imprimir Reporte</button>
+    </div>
+
+    <div class="container mt-5">
+        <div class="text-center mb-4">
+            <img src="{% static 'principal/img/Shalom.png' %}" class="header-logo mb-2" alt="Logo">
+            <div class="school-name">Colegio Shalom</div>
+            <div>Whatsapp: 84274246</div>
+            <small>Dirección: Colegio Calazans 2 Cuadras al sur, 1/2 Cuadra al oeste.</small>
+        </div>
+
+        <div class="text-center document-title">
+            CONSTANCIA DE CARGA ACADÉMICA - AÑO {{ fecha_impresion|date:"Y" }}
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-12">
+                <p><strong>Docente:</strong> {{ docente.nombres }} {{ docente.apellidos }}</p>
+                <p><strong>Cédula:</strong> {{ docente.cedula }}</p>
+                <p><strong>Fecha de Emisión:</strong> {{ fecha_impresion|date:"d \d\e F \d\e Y" }}</p>
+            </div>
+        </div>
+
+        <table class="table table-custom w-100">
+            <thead>
+                <tr>
+                    <th style="width: 5%;">#</th>
+                    <th style="width: 25%;">Nivel Académico</th>
+                    <th style="width: 15%;">Sección</th>
+                    <th>Asignatura / Materia</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for carga in cargas %}
+                <tr>
+                    <td class="text-center">{{ forloop.counter }}</td>
+                    <td class="text-center">{{ carga.nivel.NombreNivel }}</td>
+                    <td class="text-center fw-bold">{{ carga.seccion.NombreSeccion }}</td>
+                    <td>{{ carga.materia.NombreMateria }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center py-4">
+                        No se encontraron cargas académicas asignadas para este periodo.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="mt-2 text-end">
+            <strong>Total de Asignaturas: {{ cargas.count }}</strong>
+        </div>
+
+        <div class="row text-center" style="margin-top: 100px;">
+            <div class="col-6">
+                <div class="signature-line"></div>
+                <p class="mt-2">Firma del Docente</p>
+            </div>
+            <div class="col-6">
+                <div class="signature-line"></div>
+                <p class="mt-2">Dirección Académica</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.onload = function() {
+            // Descomenta la siguiente línea si quieres que se abra el diálogo de imprimir apenas cargue
+            // window.print();
+        }
+    </script>
+</body>
+</html>

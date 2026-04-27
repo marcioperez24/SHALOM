@@ -1,0 +1,73 @@
+{% extends 'principal/base.html' %}
+
+{% block title %}Listado de Tipos de Servicio{% endblock %}
+
+{% block page_title %}Listado de Tipos de Servicio{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Tipos de Servicio</h6>
+                {% if perms.configuracion.crear_tservicio %}
+                <a href="{% url 'configuracion:crear_tservicio' %}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus"></i> Crear Tipo de Servicio
+                </a>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>Tipo de Servicio</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for servicio in tservicios %}
+                            <tr>
+                                <td>{{ servicio.TipoServicio }}</td>
+                                <td>
+                                    {% if servicio.activo %}
+                                    <span class="badge bg-success">Activo</span>
+                                    {% else %}
+                                    <span class="badge bg-danger">Inactivo</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if perms.configuracion.editar_tservicio %}
+                                    <a href="{% url 'configuracion:editar_tservicio' servicio.TipoServicioID %}" class="btn btn-sm btn-info">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    {% endif %}
+                                    {% if perms.configuracion.eliminar_tservicio %}
+                                    <a href="{% url 'configuracion:eliminar_tservicio' servicio.TipoServicioID %}" class="btn btn-sm btn-danger">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3">No hay tipos de servicio disponibles.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

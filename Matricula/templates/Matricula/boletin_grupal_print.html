@@ -1,0 +1,257 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boletín de Calificaciones - Impresión Grupal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome para el ícono -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* --- ESTILOS COMPARTIDOS DEL BOLETÍN INDIVIDUAL --- */
+        body {
+            font-family: Calibri, Arial, sans-serif;
+            font-size: 13pt;
+            margin: 0;
+            padding: 0;
+            line-height: 1.5;
+            color: #111;
+        }
+
+        /* Contenedor de cada página para impresión */
+        .boletin-page {
+            position: relative;
+            padding: 1.5cm;
+            min-height: 297mm; /* A4 height */
+            background-color: white;
+            box-sizing: border-box;
+            page-break-after: always;
+        }
+
+        .watermark {
+            position: absolute; 
+            top: 0; 
+            left: 0;
+            width: 100%; 
+            height: 100%;
+            background-image: url("{% static 'principal/img/Shalom.png' %}");
+            background-repeat: no-repeat !important; 
+            background-position: center center !important;
+            background-size: 700px auto !important; /* Tamaño controlado para evitar repetición */
+            opacity: 0.08; 
+            z-index: 0; 
+            pointer-events: none;
+        }
+
+        .header {
+            text-align: center; margin-bottom: 1cm; position: relative;
+            border-bottom: 1px solid #ccc; padding-bottom: 15px;
+            z-index: 1;
+        }
+        .header img.header-logo { position: absolute; top: 0; left: 0; height: 100px; width: auto; }
+        .header h1 { font-size: 20pt; font-weight: bold; margin-bottom: 5px; color: #003366; }
+        .header h2 { font-size: 16pt; font-weight: bold; margin-bottom: 15px; color: #000; }
+        .header p { margin: 2px 0; font-size: 11pt; color: #444; }
+
+        .student-info { margin-bottom: 1cm; padding: 15px; border: none; background-color: transparent; position: relative; z-index: 1; }
+        .student-info h3 { font-size: 15pt; font-weight: bold; color: #003366; margin-bottom: 10px; }
+        .student-info p { margin-bottom: 5px; font-size: 12pt; }
+        
+        .intro-text { text-align: justify; margin-bottom: 1cm; font-size: 12pt; color: #222; position: relative; z-index: 1; }
+        
+        .table-notas { width: 100%; border-collapse: collapse; margin-bottom: 1cm; background-color: transparent; position: relative; z-index: 1; }
+        .table-notas th, .table-notas td { border: none; padding: 8px 10px; text-align: center; vertical-align: middle; }
+        .table-notas thead tr:last-child th { border-bottom: 2px solid #333; }
+        .table-notas tbody tr { border-bottom: 1px solid #ccc; }
+        .table-notas thead th { background-color: transparent; font-weight: bold; font-size: 11pt; color: #000; }
+        .table-notas tbody th { text-align: left; font-weight: bold; background-color: transparent; font-size: 12pt; border: none; color: #000; }
+        
+        .sem-header, .final-header { background-color: transparent; font-weight: bold; border: none; }
+        
+        /* .nota-reprobada removido */
+        
+        /* Estilo pie de tabla (promedios) */
+        .table-notas tfoot td, .table-notas tfoot th {
+             background-color: #e9ecef; 
+             font-weight: bold;
+             border-top: 2px solid #555; 
+        }
+
+        .signatures { margin-top: 3cm; display: flex; justify-content: space-around; text-align: center; font-size: 11pt; color: #222; position: relative; z-index: 1; }
+        .signatures div { width: 45%; }
+        .signatures hr { border: 0; border-top: 1px solid #555; margin-bottom: 5px; opacity: 1; }
+        
+        .footer-date { text-align: right; font-size: 10pt; margin-top: 2cm; color: #444; position: relative; z-index: 1; }
+
+        /* --- BOTÓN DE IMPRIMIR --- */
+        .print-btn {
+            position: fixed; top: 20px; right: 20px;
+            background-color: #0d6efd; color: white;
+            border: none; border-radius: 5px; padding: 8px 15px;
+            font-size: 1rem; cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); z-index: 1000;
+        }
+        .print-btn:hover { background-color: #0b5ed7; }
+
+        @media print {
+            body { background-color: white; }
+            .boletin-page { padding: 1.5cm; margin: 0; border: none; box-shadow: none; }
+            .no-print { display: none !important; }
+            .watermark { opacity: 0.08 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .table-notas tfoot td, .table-notas tfoot th { background-color: #e9ecef !important; border-top: 2px solid #555 !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- BOTONES DE ACCIÓN -->
+    <div class="no-print" style="position: fixed; top: 20px; right: 20px; z-index: 1000; display: flex; gap: 10px;">
+        <button class="print-btn" style="position: static;" onclick="window.print()">
+            <i class="fas fa-print me-1"></i> Confirmar Impresión Grupal
+        </button>
+        <a href="{% url 'Matricula:boletin_grupal_filtro' %}" class="btn btn-secondary shadow-sm d-flex align-items-center" style="padding: 8px 15px;">
+            <i class="fas fa-arrow-left me-1"></i> Volver al Filtro
+        </a>
+    </div>
+
+    {% for item in lista_boletines %}
+    <div class="boletin-page">
+        <div class="watermark"></div>
+
+        <div class="header">
+            <img src="{% static 'principal/img/Shalom.png' %}" alt="Logo Colegio Shalom" class="header-logo">
+            <h1>Colegio Shalom</h1>
+            <p>León, Nicaragua</p>
+            <h2>BOLETÍN DE CALIFICACIONES - AÑO LECTIVO {{ anio }}</h2>
+        </div>
+
+        <div class="student-info">
+            <h3>{{ item.estudiante.NombreCompleto }}</h3>
+            <p>
+                <span class="fw-bold">Nivel:</span> {{ item.nivel.NombreNivel }} |
+                <span class="fw-bold">Sección:</span> {{ item.seccion.NombreSeccion }}
+            </p>
+            <p>
+                <span class="fw-bold">Código:</span> {{ item.estudiante.Codigo_MINED|default:"N/A" }} 
+            </p>
+        </div>
+
+        <p class="intro-text">
+            El presente documento detalla las calificaciones obtenidas por el estudiante durante los periodos académicos seleccionados del año lectivo {{ anio }}.
+            Las notas reflejan el desempeño académico según los criterios de evaluación establecidos por la institución.
+        </p>
+
+        <table class="table-notas">
+            <thead>
+                <tr>
+                    <th rowspan="2">Materia</th>
+                    {% if show_c1 %}<th colspan="{{ colspan_periodo }}">I Corte</th>{% endif %}
+                    {% if show_c2 %}<th colspan="{{ colspan_periodo }}">II Corte</th>{% endif %}
+                    {% if show_s1 %}<th colspan="{{ colspan_periodo }}" class="sem-header">I Sem.</th>{% endif %}
+                    {% if show_c3 %}<th colspan="{{ colspan_periodo }}">III Corte</th>{% endif %}
+                    {% if show_c4 %}<th colspan="{{ colspan_periodo }}">IV Corte</th>{% endif %}
+                    {% if show_s2 %}<th colspan="{{ colspan_periodo }}" class="sem-header">II Sem.</th>{% endif %}
+                    {% if show_nf %}<th colspan="{{ colspan_periodo }}" class="final-header">Nota Final</th>{% endif %}
+                </tr>
+                <tr>
+                    {% if show_c1 %}{% if show_cuant %}<th>Nota</th>{% endif %}{% if show_cual %}<th>Equiv.</th>{% endif %}{% endif %}
+                    {% if show_c2 %}{% if show_cuant %}<th>Nota</th>{% endif %}{% if show_cual %}<th>Equiv.</th>{% endif %}{% endif %}
+                    {% if show_s1 %}{% if show_cuant %}<th class="sem-header">Nota</th>{% endif %}{% if show_cual %}<th class="sem-header">Equiv.</th>{% endif %}{% endif %}
+                    {% if show_c3 %}{% if show_cuant %}<th>Nota</th>{% endif %}{% if show_cual %}<th>Equiv.</th>{% endif %}{% endif %}
+                    {% if show_c4 %}{% if show_cuant %}<th>Nota</th>{% endif %}{% if show_cual %}<th>Equiv.</th>{% endif %}{% endif %}
+                    {% if show_s2 %}{% if show_cuant %}<th class="sem-header">Nota</th>{% endif %}{% if show_cual %}<th class="sem-header">Equiv.</th>{% endif %}{% endif %}
+                    {% if show_nf %}{% if show_cuant %}<th class="final-header">Nota</th>{% endif %}{% if show_cual %}<th class="final-header">Equiv.</th>{% endif %}{% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in item.boletin_data %}
+                <tr>
+                    <th>{{ row.materia.NombreMateria }}</th>
+                    {% if show_c1 %}
+                        {% if show_cuant %}<td>{{ row.notas.c1.cuant|floatformat:0|default:"-" }}</td>{% endif %}
+                        {% if show_cual %}<td>{{ row.notas.c1.cual|default:"-" }}</td>{% endif %}
+                    {% endif %}
+                    {% if show_c2 %}
+                        {% if show_cuant %}<td>{{ row.notas.c2.cuant|floatformat:0|default:"-" }}</td>{% endif %}
+                        {% if show_cual %}<td>{{ row.notas.c2.cual|default:"-" }}</td>{% endif %}
+                    {% endif %}
+                    {% if show_s1 %}
+                        {% if show_cuant %}<td class="sem-header">{{ row.notas.s1.cuant|floatformat:0|default:"-" }}</td>{% endif %}
+                        {% if show_cual %}<td class="sem-header">{{ row.notas.s1.cual|default:"-" }}</td>{% endif %}
+                    {% endif %}
+                    {% if show_c3 %}
+                        {% if show_cuant %}<td>{{ row.notas.c3.cuant|floatformat:0|default:"-" }}</td>{% endif %}
+                        {% if show_cual %}<td>{{ row.notas.c3.cual|default:"-" }}</td>{% endif %}
+                    {% endif %}
+                    {% if show_c4 %}
+                        {% if show_cuant %}<td>{{ row.notas.c4.cuant|floatformat:0|default:"-" }}</td>{% endif %}
+                        {% if show_cual %}<td>{{ row.notas.c4.cual|default:"-" }}</td>{% endif %}
+                    {% endif %}
+                    {% if show_s2 %}
+                        {% if show_cuant %}<td class="sem-header">{{ row.notas.s2.cuant|floatformat:0|default:"-" }}</td>{% endif %}
+                        {% if show_cual %}<td class="sem-header">{{ row.notas.s2.cual|default:"-" }}</td>{% endif %}
+                    {% endif %}
+                    {% if show_nf %}
+                        {% if show_cuant %}<td class="final-header">{{ row.notas.nf.cuant|floatformat:0|default:"-" }}</td>{% endif %}
+                        {% if show_cual %}<td class="final-header">{{ row.notas.nf.cual|default:"-" }}</td>{% endif %}
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+            {% if item.promedios %}
+            <tfoot>
+                <tr>
+                    <th>PROMEDIO GENERAL</th>
+                    {% if show_c1 %}
+                        {% if show_cuant %}<td>{{ item.promedios.c1.cuant|floatformat:0|default:"-" }}</td>{% endif %}
+                        {% if show_cual %}<td>{{ item.promedios.c1.cual|default:"-" }}</td>{% endif %}
+                    {% endif %}
+                    {% if show_c2 %}
+                        {% if show_cuant %}<td>{{ item.promedios.c2.cuant|floatformat:0|default:"-" }}</td>{% endif %}
+                        {% if show_cual %}<td>{{ item.promedios.c2.cual|default:"-" }}</td>{% endif %}
+                    {% endif %}
+                    {% if show_s1 %}
+                        {% if show_cuant %}<td>{{ item.promedios.s1.cuant|floatformat:0|default:"-" }}</td>{% endif %}
+                        {% if show_cual %}<td>{{ item.promedios.s1.cual|default:"-" }}</td>{% endif %}
+                    {% endif %}
+                    {% if show_c3 %}
+                        {% if show_cuant %}<td>{{ item.promedios.c3.cuant|floatformat:0|default:"-" }}</td>{% endif %}
+                        {% if show_cual %}<td>{{ item.promedios.c3.cual|default:"-" }}</td>{% endif %}
+                    {% endif %}
+                    {% if show_c4 %}
+                        {% if show_cuant %}<td>{{ item.promedios.c4.cuant|floatformat:0|default:"-" }}</td>{% endif %}
+                        {% if show_cual %}<td>{{ item.promedios.c4.cual|default:"-" }}</td>{% endif %}
+                    {% endif %}
+                    {% if show_s2 %}
+                        {% if show_cuant %}<td>{{ item.promedios.s2.cuant|floatformat:0|default:"-" }}</td>{% endif %}
+                        {% if show_cual %}<td>{{ item.promedios.s2.cual|default:"-" }}</td>{% endif %}
+                    {% endif %}
+                    {% if show_nf %}
+                        {% if show_cuant %}<td>{{ item.promedios.nf.cuant|floatformat:0|default:"-" }}</td>{% endif %}
+                        {% if show_cual %}<td>{{ item.promedios.nf.cual|default:"-" }}</td>{% endif %}
+                    {% endif %}
+                </tr>
+            </tfoot>
+            {% endif %}
+        </table>
+
+        <p class="footer-date">
+            Emitido en León, Nicaragua a los {{ fecha_emision|date:"d" }} días del mes de {{ fecha_emision|date:"F" }} de {{ fecha_emision|date:"Y" }}.
+        </p>
+
+        <div class="signatures">
+            <div>
+                <hr>
+                <p>Dirección Académica</p>
+            </div>
+            <div>
+                <hr>
+                <p>Padre/Madre o Tutor</p>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+</body>
+</html>

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ titulo }}</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+    </style>
+</head>
+<body class="p-8">
+
+    <div class="max-w-4xl mx-auto bg-white p-8 rounded-lg shadow-lg">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">{{ titulo }}</h1>
+
+        <!-- Sección de Resumen de Factura -->
+        <div class="bg-gray-100 p-6 rounded-lg shadow-inner mb-6">
+            <div class="grid grid-cols-2 gap-4 text-gray-700">
+                <div>
+                    <p class="font-medium">Factura #{{ factura.FacturaID }}</p>
+                    <p>Estudiante: {{ factura.EstudianteID.NombreCompleto }}</p>
+                    <p>Fecha de Emisión: {{ factura.Fecha|date:"d F Y" }}</p>
+                    <p class="mt-2 font-bold text-lg">Total de Factura: {{ factura.Moneda }}{{ factura.Total|floatformat:2 }} </p>
+                </div>
+                <div class="text-right">
+                    <p class="text-green-600">Total Pagado: {{ factura.Moneda }}{{ total_pagado|floatformat:2 }} </p>
+                    <p class="text-red-600 font-bold text-xl">Saldo Pendiente: {{ factura.Moneda }}{{ saldo_pendiente|floatformat:2 }} </p>
+                    <p class="mt-2 text-sm">Estado: 
+                        <span class="px-2 py-1 rounded-full text-white font-medium"
+                                style="background-color: {% if factura.Estado == 'Pagada' %}#10B981{% else %}#F59E0B{% endif %};">
+                            {{ factura.Estado }}
+                        </span>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de Detalles de la Factura -->
+        <div class="mb-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Detalles de la Factura</h2>
+            <div class="overflow-x-auto rounded-lg shadow">
+                <table class="min-w-full bg-white">
+                    <thead class="bg-gray-800 text-white">
+                        <tr>
+                            <th class="px-6 py-3 text-left font-medium">Concepto</th>
+                            <th class="px-6 py-3 text-left font-medium">Cantidad</th>
+                            <th class="px-6 py-3 text-left font-medium">Precio Unitario</th>
+                            <th class="px-6 py-3 text-right font-medium">Subtotal</th>
+                            <th class="px-6 py-3 text-right font-medium">Descuento</th>
+                            <th class="px-6 py-3 text-right font-medium">Total a Pagar</th>
+                            <th class="px-6 py-3 text-right font-medium">Saldo</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        {% for detalle in detalles_factura %}
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ detalle.ServicioID.NombreServicio }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ detalle.Cantidad }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ factura.Moneda }}{{ detalle.PrecioUnitario|floatformat:2 }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right">{{ factura.Moneda }}{{ detalle.Subtotal|floatformat:2 }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ detalle.Descuento }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ detalle.MontoPagado }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ detalle.Saldo }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Sección para Registrar Nuevo Pago -->
+        <div class="bg-white p-6 rounded-lg shadow border border-gray-200">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Registrar Nuevo Pago</h2>
+            <form id="form-generar-recibo" method="post" action="{% url 'facturacion:generar_recibo' factura_id=factura.FacturaID %}">
+                {% csrf_token %}
+                <div class="flex space-x-4">
+                    <div class="flex-1">
+                        <label for="monto_a_pagar" class="block text-sm font-medium text-gray-700">Monto a Pagar:</label>
+                        <input type="number" id="monto_a_pagar" name="monto_a_pagar" step="0.01" required
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2"
+                               value="{{ saldo_pendiente|floatformat:2 }}">
+                    </div>
+                    <div class="flex-1">
+                        <label for="fecha_pago" class="block text-sm font-medium text-gray-700">Fecha de Pago:</label>
+                        <input type="date" id="fecha_pago" name="fecha_pago" required
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2">
+                    </div>
+                </div>
+                <div class="mt-6 text-right">
+                    <button type="submit"
+                            class="inline-flex justify-center py-2 px-6 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                        Generar Recibo
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <div class="mt-6 text-center">
+            <a href="{% url 'facturacion:lista_facturas' %}" class="text-blue-600 hover:text-blue-800 font-medium transition-colors">
+                Volver a la lista
+            </a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const formGenerarRecibo = document.getElementById('form-generar-recibo');
+            
+            if (formGenerarRecibo) {
+                formGenerarRecibo.addEventListener('submit', function(event) {
+                    event.preventDefault(); // Evita el envío del formulario tradicional
+
+                    const formData = new FormData(this);
+                    const facturaId = "{{ factura.FacturaID }}";
+
+                    fetch(`/facturacion/facturas/recibo/generar/${facturaId}/`, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                        },
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.json().then(error => { throw new Error(error.error); });
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            const reciboId = data.recibo_id;
+                            if (reciboId) {
+                                // Redirige a la URL de la nueva página de recibo
+                                window.location.href = `/facturacion/detalle_recibo/${reciboId}/`;
+                            } else {
+                                // Si no se generó recibo (ej. pago de 0), puedes redirigir a la factura
+                                alert('El pago fue procesado pero no se generó un recibo. Revisa el saldo de la factura.');
+                            }
+                        } else {
+                            alert(data.error);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert(error.message);
+                    });
+                });
+            }
+        });
+    </script>
+</body>
+</html>

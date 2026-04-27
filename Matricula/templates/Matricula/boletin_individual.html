@@ -1,0 +1,218 @@
+{% extends 'principal/base.html' %}
+{% load static %}
+
+{% block page_title %}
+Boletín de {{ estudiante.NombreCompleto }}
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <!-- Encabezado y Navegación -->
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap d-print-none">
+        <div>
+            <h2 class="text-primary mb-0">Boletín Individual</h2>
+            <!-- 
+            =============================================================
+              BREADCRUMB MODIFICADO CON ESTILO DE BOTONES
+            =============================================================
+            Se usa btn-group y btn btn-sm para dar apariencia de botones.
+            -->
+            <nav aria-label="breadcrumb" class="mt-2">
+                <div class="btn-group btn-group-sm" role="group" aria-label="Breadcrumb navigation">
+                    <a href="{% url 'Matricula:Matricula_home' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-home me-1"></i> Panel
+                    </a>
+                    <a href="{% url 'Matricula:boletin_individual_filtro' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-filter me-1"></i> Filtro Boletín
+                    </a>
+                    <button type="button" class="btn btn-secondary active" aria-current="page">
+                        <i class="fas fa-file-alt me-1"></i> Boletín
+                    </button>
+                </div>
+            </nav>
+            <!-- Fin Breadcrumb Modificado -->
+        </div>
+        <div>
+             <a href="{% url 'Matricula:boletin_individual_filtro' %}" class="btn btn-secondary me-2">
+                <i class="fas fa-arrow-left me-1"></i> Cambiar Filtros
+            </a>
+            <!-- Enlace directo a la vista de impresión, sin JS -->
+            <a href="{% url 'Matricula:imprimir_boletin_individual' estudiante_id=estudiante.EstudianteID %}?{{ request.GET.urlencode }}"
+               class="btn btn-outline-primary"
+               target="_blank">
+                <i class="fas fa-print me-2"></i>Imprimir Boletín (Formato Oficial)
+            </a>
+        </div>
+    </div>
+
+    <!-- Sección de Información del Estudiante -->
+    <div class="card shadow-sm mb-4 boletin-header">
+         <div class="card-body">
+             <div class="row align-items-center">
+                 <div class="col-md-2 text-center mb-3 mb-md-0">
+                     {% if estudiante.FotoCarnet %}
+                     <img src="{{ estudiante.FotoCarnet.url }}" alt="Foto de {{ estudiante.NombreCompleto }}" class="img-thumbnail rounded-circle" style="width: 100px; height: 100px; object-fit: cover;">
+                     {% else %}
+                     <i class="fas fa-user-circle fa-5x text-secondary"></i>
+                     {% endif %}
+                 </div>
+                 <div class="col-md-10">
+                     <h3 class="card-title text-primary mb-1">{{ estudiante.NombreCompleto }}</h3>
+                     <p class="card-text mb-1">
+                         <span class="fw-bold">Nivel:</span> {{ nivel.NombreNivel }} |
+                         <span class="fw-bold">Sección:</span> {{ seccion.NombreSeccion }} |
+                         <span class="fw-bold">Año Lectivo:</span> {{ anio }}
+                     </p>
+                     <p class="card-text text-muted mb-0">
+                         <span class="fw-bold">Código:</span> {{ estudiante.Codigo_MINED|default:"N/A" }} |
+                         <span class="fw-bold">Fecha Nacimiento:</span> {{ estudiante.FechaNacimiento|date:"d/m/Y" }} ({{ estudiante.Edad }} años)
+                     </p>
+                 </div>
+             </div>
+         </div>
+    </div>
+
+    <!-- Tabla de Notas -->
+    <div class="card shadow-lg">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover mb-0 boletin-table" style="font-size: 0.9rem;">
+                    <thead class="table-light text-center align-middle">
+                        <tr>
+                            <th rowspan="2" style="vertical-align: middle;">Materia</th>
+                            {% if show_c1 %}<th colspan="{{ colspan_periodo }}">I Corte</th>{% endif %}
+                            {% if show_c2 %}<th colspan="{{ colspan_periodo }}">II Corte</th>{% endif %}
+                            {% if show_s1 %}<th colspan="{{ colspan_periodo }}" class="table-primary">I Sem.</th>{% endif %}
+                            {% if show_c3 %}<th colspan="{{ colspan_periodo }}">III Corte</th>{% endif %}
+                            {% if show_c4 %}<th colspan="{{ colspan_periodo }}">IV Corte</th>{% endif %}
+                            {% if show_s2 %}<th colspan="{{ colspan_periodo }}" class="table-primary">II Sem.</th>{% endif %}
+                            {% if show_nf %}<th colspan="{{ colspan_periodo }}" class="table-success">Nota Final</th>{% endif %}
+                        </tr>
+                        <tr>
+                            {% if show_c1 %}{% if show_cuant %}<th>Nota</th>{% endif %}{% if show_cual %}<th>Equiv.</th>{% endif %}{% endif %}
+                            {% if show_c2 %}{% if show_cuant %}<th>Nota</th>{% endif %}{% if show_cual %}<th>Equiv.</th>{% endif %}{% endif %}
+                            {% if show_s1 %}{% if show_cuant %}<th class="table-primary">Nota</th>{% endif %}{% if show_cual %}<th class="table-primary">Equiv.</th>{% endif %}{% endif %}
+                            {% if show_c3 %}{% if show_cuant %}<th>Nota</th>{% endif %}{% if show_cual %}<th>Equiv.</th>{% endif %}{% endif %}
+                            {% if show_c4 %}{% if show_cuant %}<th>Nota</th>{% endif %}{% if show_cual %}<th>Equiv.</th>{% endif %}{% endif %}
+                            {% if show_s2 %}{% if show_cuant %}<th class="table-primary">Nota</th>{% endif %}{% if show_cual %}<th class="table-primary">Equiv.</th>{% endif %}{% endif %}
+                            {% if show_nf %}{% if show_cuant %}<th class="table-success">Nota</th>{% endif %}{% if show_cual %}<th class="table-success">Equiv.</th>{% endif %}{% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Bucle para mostrar las notas -->
+                        {% for item in boletin_data %}
+                        <tr>
+                            <td class="fw-bold">{{ item.materia.NombreMateria }}</td>
+                            {% if show_c1 %}
+                                {% if show_cuant %}<td class="text-center {% if item.notas.c1.cuant is not None and item.notas.c1.cuant < 60 %}text-danger fw-bold{% endif %}">{{ item.notas.c1.cuant|floatformat:0|default:"-" }}</td>{% endif %}
+                                {% if show_cual %}<td class="text-center {% if item.notas.c1.cuant is not None and item.notas.c1.cuant < 60 %}text-danger fw-bold{% endif %}">{{ item.notas.c1.cual|default:"-" }}</td>{% endif %}
+                            {% endif %}
+                             {% if show_c2 %}
+                                {% if show_cuant %}<td class="text-center {% if item.notas.c2.cuant is not None and item.notas.c2.cuant < 60 %}text-danger fw-bold{% endif %}">{{ item.notas.c2.cuant|floatformat:0|default:"-" }}</td>{% endif %}
+                                {% if show_cual %}<td class="text-center {% if item.notas.c2.cuant is not None and item.notas.c2.cuant < 60 %}text-danger fw-bold{% endif %}">{{ item.notas.c2.cual|default:"-" }}</td>{% endif %}
+                            {% endif %}
+                             {% if show_s1 %}
+                                {% if show_cuant %}<td class="text-center table-primary fw-bold {% if item.notas.s1.cuant is not None and item.notas.s1.cuant < 60 %}bg-danger-subtle text-danger{% endif %}">{{ item.notas.s1.cuant|floatformat:0|default:"-" }}</td>{% endif %}
+                                {% if show_cual %}<td class="text-center table-primary fw-bold {% if item.notas.s1.cuant is not None and item.notas.s1.cuant < 60 %}bg-danger-subtle text-danger{% endif %}">{{ item.notas.s1.cual|default:"-" }}</td>{% endif %}
+                            {% endif %}
+                             {% if show_c3 %}
+                                {% if show_cuant %}<td class="text-center {% if item.notas.c3.cuant is not None and item.notas.c3.cuant < 60 %}text-danger fw-bold{% endif %}">{{ item.notas.c3.cuant|floatformat:0|default:"-" }}</td>{% endif %}
+                                {% if show_cual %}<td class="text-center {% if item.notas.c3.cuant is not None and item.notas.c3.cuant < 60 %}text-danger fw-bold{% endif %}">{{ item.notas.c3.cual|default:"-" }}</td>{% endif %}
+                            {% endif %}
+                             {% if show_c4 %}
+                                {% if show_cuant %}<td class="text-center {% if item.notas.c4.cuant is not None and item.notas.c4.cuant < 60 %}text-danger fw-bold{% endif %}">{{ item.notas.c4.cuant|floatformat:0|default:"-" }}</td>{% endif %}
+                                {% if show_cual %}<td class="text-center {% if item.notas.c4.cuant is not None and item.notas.c4.cuant < 60 %}text-danger fw-bold{% endif %}">{{ item.notas.c4.cual|default:"-" }}</td>{% endif %}
+                            {% endif %}
+                             {% if show_s2 %}
+                                {% if show_cuant %}<td class="text-center table-primary fw-bold {% if item.notas.s2.cuant is not None and item.notas.s2.cuant < 60 %}bg-danger-subtle text-danger{% endif %}">{{ item.notas.s2.cuant|floatformat:0|default:"-" }}</td>{% endif %}
+                                {% if show_cual %}<td class="text-center table-primary fw-bold {% if item.notas.s2.cuant is not None and item.notas.s2.cuant < 60 %}bg-danger-subtle text-danger{% endif %}">{{ item.notas.s2.cual|default:"-" }}</td>{% endif %}
+                            {% endif %}
+                             {% if show_nf %}
+                                {% if show_cuant %}<td class="text-center table-success fw-bold {% if item.notas.nf.cuant is not None and item.notas.nf.cuant < 60 %}bg-danger-subtle text-danger{% endif %}">{{ item.notas.nf.cuant|floatformat:0|default:"-" }}</td>{% endif %}
+                                {% if show_cual %}<td class="text-center table-success fw-bold {% if item.notas.nf.cuant is not None and item.notas.nf.cuant < 60 %}bg-danger-subtle text-danger{% endif %}">{{ item.notas.nf.cual|default:"-" }}</td>{% endif %}
+                            {% endif %}
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            {% with colspan_count=1 %}
+                                {% if show_c1 %}{% with colspan_count=colspan_count|add:colspan_periodo %}{% endwith %}{% endif %}
+                                {% if show_c2 %}{% with colspan_count=colspan_count|add:colspan_periodo %}{% endwith %}{% endif %}
+                                {% if show_s1 %}{% with colspan_count=colspan_count|add:colspan_periodo %}{% endwith %}{% endif %}
+                                {% if show_c3 %}{% with colspan_count=colspan_count|add:colspan_periodo %}{% endwith %}{% endif %}
+                                {% if show_c4 %}{% with colspan_count=colspan_count|add:colspan_periodo %}{% endwith %}{% endif %}
+                                {% if show_s2 %}{% with colspan_count=colspan_count|add:colspan_periodo %}{% endwith %}{% endif %}
+                                {% if show_nf %}{% with colspan_count=colspan_count|add:colspan_periodo %}{% endwith %}{% endif %}
+                                <td colspan="{{ colspan_count }}" class="text-center text-danger py-4">
+                                    Este estudiante no tiene materias inscritas para el año lectivo actual.
+                                </td>
+                             {% endwith %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                     <!-- Pie de Tabla con Promedios Generales -->
+                    {% if boletin_data and promedios %} {# Solo mostrar si hay datos y promedios #}
+                    <tfoot class="table-group-divider fw-bold text-center align-middle">
+                        <tr class="table-light">
+                            <td>PROMEDIO GENERAL</td>
+                            {% if show_c1 %}
+                                {% if show_cuant %}<td class="{% if promedios.c1.cuant is not None and promedios.c1.cuant < 60 %}text-danger{% endif %}">{{ promedios.c1.cuant|floatformat:0|default:"-" }}</td>{% endif %}
+                                {% if show_cual %}<td class="{% if promedios.c1.cuant is not None and promedios.c1.cuant < 60 %}text-danger{% endif %}">{{ promedios.c1.cual|default:"-" }}</td>{% endif %}
+                            {% endif %}
+                            {% if show_c2 %}
+                                {% if show_cuant %}<td class="{% if promedios.c2.cuant is not None and promedios.c2.cuant < 60 %}text-danger{% endif %}">{{ promedios.c2.cuant|floatformat:0|default:"-" }}</td>{% endif %}
+                                {% if show_cual %}<td class="{% if promedios.c2.cuant is not None and promedios.c2.cuant < 60 %}text-danger{% endif %}">{{ promedios.c2.cual|default:"-" }}</td>{% endif %}
+                            {% endif %}
+                            {% if show_s1 %}
+                                {% if show_cuant %}<td class="table-primary {% if promedios.s1.cuant is not None and promedios.s1.cuant < 60 %}bg-danger-subtle text-danger{% endif %}">{{ promedios.s1.cuant|floatformat:0|default:"-" }}</td>{% endif %}
+                                {% if show_cual %}<td class="table-primary {% if promedios.s1.cuant is not None and promedios.s1.cuant < 60 %}bg-danger-subtle text-danger{% endif %}">{{ promedios.s1.cual|default:"-" }}</td>{% endif %}
+                            {% endif %}
+                            {% if show_c3 %}
+                                {% if show_cuant %}<td class="{% if promedios.c3.cuant is not None and promedios.c3.cuant < 60 %}text-danger{% endif %}">{{ promedios.c3.cuant|floatformat:0|default:"-" }}</td>{% endif %}
+                                {% if show_cual %}<td class="{% if promedios.c3.cuant is not None and promedios.c3.cuant < 60 %}text-danger{% endif %}">{{ promedios.c3.cual|default:"-" }}</td>{% endif %}
+                            {% endif %}
+                            {% if show_c4 %}
+                                {% if show_cuant %}<td class="{% if promedios.c4.cuant is not None and promedios.c4.cuant < 60 %}text-danger{% endif %}">{{ promedios.c4.cuant|floatformat:0|default:"-" }}</td>{% endif %}
+                                {% if show_cual %}<td class="{% if promedios.c4.cuant is not None and promedios.c4.cuant < 60 %}text-danger{% endif %}">{{ promedios.c4.cual|default:"-" }}</td>{% endif %}
+                            {% endif %}
+                            {% if show_s2 %}
+                                {% if show_cuant %}<td class="table-primary {% if promedios.s2.cuant is not None and promedios.s2.cuant < 60 %}bg-danger-subtle text-danger{% endif %}">{{ promedios.s2.cuant|floatformat:0|default:"-" }}</td>{% endif %}
+                                {% if show_cual %}<td class="table-primary {% if promedios.s2.cuant is not None and promedios.s2.cuant < 60 %}bg-danger-subtle text-danger{% endif %}">{{ promedios.s2.cual|default:"-" }}</td>{% endif %}
+                            {% endif %}
+                            {% if show_nf %}
+                                {% if show_cuant %}<td class="table-success {% if promedios.nf.cuant is not None and promedios.nf.cuant < 60 %}bg-danger-subtle text-danger{% endif %}">{{ promedios.nf.cuant|floatformat:0|default:"-" }}</td>{% endif %}
+                                {% if show_cual %}<td class="table-success {% if promedios.nf.cuant is not None and promedios.nf.cuant < 60 %}bg-danger-subtle text-danger{% endif %}">{{ promedios.nf.cual|default:"-" }}</td>{% endif %}
+                            {% endif %}
+                        </tr>
+                    </tfoot>
+                    {% endif %}
+                    <!-- Fin Pie de Tabla -->
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sección de Firmas (Oculta en pantalla) -->
+    <div class="row mt-5 pt-5 d-print-block d-none">...</div>
+
+</div>
+
+<style>
+/* Estilos adicionales para el boletín y la impresión */
+@media print {
+    body { font-size: 10pt; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .container { max-width: 100%; margin: 0; padding: 10px; }
+    .card { box-shadow: none !important; border: none !important; }
+    .boletin-header .card-body { border: 1px solid #ccc; padding: 15px; }
+    .table-responsive { overflow: visible !important; }
+    .boletin-table th, .boletin-table td { padding: 0.4rem 0.5rem; }
+    .table-primary { background-color: #cfe2ff !important; }
+    .table-success { background-color: #d1e7dd !important; }
+    .table-light { background-color: #f8f9fa !important; } 
+}
+@media screen {
+    .boletin-table th, .boletin-table td { white-space: nowrap; }
+}
+</style>
+{% endblock %}
+

@@ -1,0 +1,97 @@
+{% extends 'principal/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-4">
+            <h2 class="text-center mb-4 fw-bold text-dark">Crear Nuevo Grupo</h2>
+            
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="row justify-content-center mb-4">
+                    <div class="col-md-8">
+                        {{ form.name|as_crispy_field }}
+                    </div>
+                </div>
+
+                <div class="border rounded p-4 bg-light">
+                    <h5 class="fw-bold mb-4"><i class="fas fa-key me-2"></i>Asignar Permisos por Módulo</h5>
+                    
+                    <div class="accordion shadow-sm" id="accordionPermisos">
+                        {% for modulo, permisos in permisos_agrupados.items %}
+                        <div class="accordion-item border-0 mb-2 rounded shadow-sm">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ forloop.counter }}">
+                                    <i class="fas fa-folder me-2 text-primary"></i> {{ modulo }} 
+                                    <span class="ms-2 badge bg-secondary fw-normal">{{ permisos|length }} ítems</span>
+                                </button>
+                            </h2>
+                            <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse" data-bs-parent="#accordionPermisos">
+                                <div class="accordion-body bg-white">
+                                    <div class="mb-3 text-end">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="seleccionarTodo(this, 'collapse{{ forloop.counter }}')">
+                                            <i class="fas fa-check-square me-1"></i> Seleccionar Todo
+                                        </button>
+                                    </div>
+                                    <div class="row row-cols-1 row-cols-md-3 g-3">
+                                        {% for p in permisos %}
+                                        <div class="col">
+                                            <div class="form-check p-2 border rounded hover-shadow transition-all" style="min-height: 60px;">
+                                                <input class="form-check-input ms-1" type="checkbox" name="permissions" value="{{ p.id }}" id="perm_{{ p.id }}"
+                                                {% if p.id in form.permissions.value %}checked{% endif %}>
+                                                <label class="form-check-label ms-2" for="perm_{{ p.id }}">
+                                                    {% with label=p.name|lower %}
+                                                        {% if 'crear' in label or 'add' in p.codename %}
+                                                            <strong class="text-success small">Añadir</strong>
+                                                        {% elif 'editar' in label or 'change' in p.codename %}
+                                                            <strong class="text-primary small">Editar</strong>
+                                                        {% elif 'eliminar' in label or 'delete' in p.codename %}
+                                                            <strong class="text-danger small">Eliminar</strong>
+                                                        {% else %}
+                                                            <strong class="text-muted small">Ver/Otro</strong>
+                                                        {% endif %}
+                                                        <div class="text-dark small text-truncate" title="{{ p.name }}">
+                                                            {{ p.name|cut:"puede "|cut:"Can "|title }}
+                                                        </div>
+                                                    {% endwith %}
+                                                </label>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="text-center mt-5">
+                    <button type="submit" class="btn btn-success btn-lg px-5 shadow-sm">
+                        <i class="fas fa-save me-2"></i> Guardar Grupo
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .accordion-button:not(.collapsed) { background-color: #f8f9fa; color: #198754; box-shadow: none; }
+    .hover-shadow:hover { border-color: #198754 !important; background-color: #f0fff4; }
+    .transition-all { transition: 0.2s ease-in-out; }
+</style>
+
+<script>
+function seleccionarTodo(btn, containerId) {
+    const container = document.getElementById(containerId);
+    const checks = container.querySelectorAll('input[type="checkbox"]');
+    const allChecked = Array.from(checks).every(c => c.checked);
+    checks.forEach(c => c.checked = !allChecked);
+    btn.innerHTML = allChecked ? '<i class="fas fa-check-square me-1"></i> Seleccionar Todo' : '<i class="fas fa-minus-square me-1"></i> Desmarcar Todo';
+}
+</script>
+{% endblock %}

@@ -1,0 +1,264 @@
+{% extends 'principal/base.html' %}
+{% load static %}
+
+{% block page_title %}
+Consulta de Facturas Pendientes
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+    /* Estilos generales */
+    .card-total { 
+        background-color: #f8d7da; 
+        color: #721c24; 
+        border-color: #f5c6cb; 
+        transition: transform 0.2s;
+    }
+    .card-total:hover {
+        transform: translateY(-3px);
+    }
+    .monto-display { 
+        font-size: 2rem; 
+        font-weight: 700; 
+    }
+    .table-pendientes th {
+        background-color: #dc3545; /* Rojo de peligro */
+        color: white;
+    }
+    /* Estilo para el botón de imprimir */
+    .btn-imprimir-reporte {
+        background-color: #007bff;
+        border-color: #007bff;
+        color: white;
+    }
+    .btn-imprimir-reporte:hover {
+        background-color: #0056b3;
+        border-color: #0056b3;
+        color: white;
+    }
+
+    /* Responsive Table Styles (para mejorar la visualización en móvil) */
+    @media (max-width: 768px) {
+        .table-responsive table {
+            font-size: 0.85rem;
+        }
+        .table-responsive thead {
+            display: none; /* Oculta el encabezado en móvil */
+        }
+        .table-responsive tbody tr {
+            display: block;
+            margin-bottom: 0.8rem;
+            border: 1px solid #dee2e6;
+            border-radius: 0.5rem;
+        }
+        .table-responsive tbody td {
+            display: block;
+            text-align: right;
+            padding-left: 50%;
+            position: relative;
+        }
+        .table-responsive tbody td::before {
+            content: attr(data-label);
+            position: absolute;
+            left: 0.5rem;
+            width: 45%;
+            padding-left: 0.5rem;
+            font-weight: bold;
+            text-align: left;
+            white-space: nowrap;
+        }
+        .text-right-mobile {
+            text-align: right !important;
+        }
+        /* Ajuste para los botones en móvil */
+        td[data-label="Acciones"] {
+            text-align: center !important;
+            padding-left: 0.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h2><i class="fas fa-exclamation-triangle me-2 text-danger"></i> {{ titulo }}</h2>
+    <p class="lead">Listado de todas las facturas con saldo pendiente, filtrable por año y nivel.</p>
+    <hr>
+
+    <div class="card shadow mb-4">
+        <div class="card-header bg-danger text-white">
+            <h5 class="mb-0"><i class="fas fa-filter me-2"></i> Filtros de Cobranza</h5>
+        </div>
+        <div class="card-body">
+            <form id="filtro-form" method="GET" class="row g-3 align-items-end">
+                
+                <div class="col-md-4 col-sm-6">
+                    <label for="anio_lectivo" class="form-label">Año Lectivo</label>
+                    <select id="anio_lectivo" name="anio_lectivo" class="form-select">
+                        <option value="">Todos los Años</option>
+                        {% for anio in anios_disponibles %}
+                            <option value="{{ anio }}" {% if anio|stringformat:"s" == selected_anio|stringformat:"s" %}selected{% endif %}>{{ anio }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-4 col-sm-6">
+                    <label for="nivel_id" class="form-label">Nivel</label>
+                    <select id="nivel_id" name="nivel_id" class="form-select">
+                        <option value="">Todos los Niveles</option>
+                        {% for nivel in niveles %}
+                            <option value="{{ nivel.NivelID }}" {% if nivel.NivelID|stringformat:"s" == selected_nivel_id|stringformat:"s" %}selected{% endif %}>{{ nivel.NombreNivel }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-danger flex-grow-1">
+                        <i class="fas fa-search me-2"></i> Aplicar Filtros
+                    </button>
+                    <button type="button" onclick="imprimirReporte()" class="btn btn-imprimir-reporte">
+                        <i class="fas fa-print"></i> Imprimir
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div class="card card-total shadow-lg mb-5">
+        <div class="card-body">
+            <h5 class="card-title"><i class="fas fa-dollar-sign me-2"></i> SALDO TOTAL PENDIENTE</h5>
+            <p class="monto-display text-danger mb-0">
+                C$ {{ total_facturas_pendientes|floatformat:2 }}
+            </p>
+            <p class="card-text border-top pt-2 mt-2">
+                Monto total que la institución tiene por cobrar.
+            </p>
+        </div>
+    </div>
+
+
+    {% if facturas_pendientes.paginator.count > 0 %}
+    <h3>Detalle de Facturas ({{ facturas_pendientes.paginator.count }} Encontradas)</h3>
+    <div class="table-responsive">
+        <table class="table table-hover table-bordered shadow-sm table-pendientes">
+            <thead>
+                <tr>
+                    <th style="width: 8%;">Factura ID</th>
+                    <th style="width: 25%;">Estudiante</th>
+                    <th style="width: 15%;">Nivel/Año</th>
+                    <th style="width: 12%;">Fecha Factura</th>
+                    <th class="text-end" style="width: 15%;">Total Factura</th>
+                    <th class="text-end" style="width: 15%;">Monto Pagado</th>
+                    <th class="text-end" style="width: 10%;">Saldo Pendiente</th>
+                    <th style="width: 5%;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for factura in facturas_pendientes %}
+                <tr>
+                    <td data-label="Factura ID" class="text-center">{{ factura.FacturaID }}</td>
+                    <td data-label="Estudiante" class="fw-bold">{{ factura.EstudianteID.NombreCompleto }}</td>
+                    <td data-label="Nivel/Año">{{ factura.MatriculaID.NivelID.NombreNivel }} ({{ factura.MatriculaID.AñoMatricula }})</td>
+                    <td data-label="Fecha">{{ factura.Fecha|date:"d/m/Y" }}</td>
+                    <td data-label="Total Facturado" class="text-end text-right-mobile">
+                        {{ factura.Moneda }} {{ factura.Total|floatformat:2 }}
+                    </td>
+                    <td data-label="Pagado" class="text-end text-right-mobile text-success">
+                        {{ factura.Moneda }} {{ factura.MontoPagado|floatformat:2 }}
+                    </td>
+                    <td data-label="Saldo Pendiente" class="text-end text-right-mobile fw-bolder text-danger">
+                        {{ factura.Moneda }} {{ factura.Saldo|floatformat:2 }}
+                    </td>
+                    <td data-label="Acciones" class="text-center">
+                        <a href="{% url 'facturacion:detalle_factura' factura.FacturaID %}" class="btn btn-sm btn-info" title="Ver Detalle">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <nav class="mt-4" aria-label="Navegación de Páginas">
+        <ul class="pagination justify-content-center">
+            
+            {% if facturas_pendientes.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1&{{ search_params }}" aria-label="Primera">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ facturas_pendientes.previous_page_number }}&{{ search_params }}" aria-label="Anterior">
+                        <span aria-hidden="true">&lt;</span>
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link" aria-hidden="true">&laquo;</span>
+                </li>
+                <li class="page-item disabled">
+                    <span class="page-link" aria-hidden="true">&lt;</span>
+                </li>
+            {% endif %}
+
+            <li class="page-item disabled">
+                <span class="page-link">Página {{ facturas_pendientes.number }} de {{ facturas_pendientes.paginator.num_pages }}</span>
+            </li>
+            
+            {% if facturas_pendientes.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ facturas_pendientes.next_page_number }}&{{ search_params }}" aria-label="Siguiente">
+                        <span aria-hidden="true">&gt;</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ facturas_pendientes.paginator.num_pages }}&{{ search_params }}" aria-label="Última">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link" aria-hidden="true">&gt;</span>
+                </li>
+                <li class="page-item disabled">
+                    <span class="page-link" aria-hidden="true">&raquo;</span>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    
+    {% else %}
+        <div class="alert alert-success text-center" role="alert">
+            <i class="fas fa-check-circle me-2"></i> ¡Excelente! No se encontraron facturas pendientes de pago con los filtros seleccionados.
+        </div>
+    {% endif %}
+
+</div>
+
+<script>
+    function imprimirReporte() {
+        const anio = document.getElementById('anio_lectivo').value;
+        const nivel = document.getElementById('nivel_id').value;
+        
+        // Asegúrate de que esta URL esté definida correctamente en tus urls.py
+        let url = "{% url 'facturacion:consulta_facturas_pendientes_imprimir' %}";
+        let params = [];
+        
+        if (anio) {
+            params.push(`anio_lectivo=${anio}`);
+        }
+        if (nivel) {
+            params.push(`nivel_id=${nivel}`);
+        }
+        
+        if (params.length > 0) {
+            url += '?' + params.join('&');
+        }
+        
+        window.open(url, '_blank');
+    }
+</script>
+{% endblock %}

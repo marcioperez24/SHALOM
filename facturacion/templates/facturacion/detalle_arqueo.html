@@ -1,0 +1,88 @@
+{% extends 'principal/base.html' %}
+
+{% block page_title %}
+Detalle de Arqueo
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <p><strong>Detalle de Arqueo </strong>#{{ arqueo.ArqueoID }}</p>
+            <p><strong>Fecha:</strong> {{ arqueo.Fecha|date:"d M Y" }}</p>
+            <p><strong>Cajero:</strong> {{ arqueo.UsuarioID.username }}</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'facturacion:imprimir_arqueo' arqueo.ArqueoID %}" class="btn btn-primary btn-lg" target="_blank">
+                <i class="bi bi-printer-fill me-2"></i> Imprimir Reporte
+            </a>
+            <a href="{% url 'facturacion:exportar_arqueo' arqueo.ArqueoID %}" class="btn btn-success btn-lg">
+                <i class="fas fa-file-excel me-2"></i> Exportar a Excel
+            </a>
+        </div>
+    </div>
+
+    <hr>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">Recibos Pertenecientes a este Arqueo</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover table-striped">
+                    <thead>
+                        <tr>
+                            <th>Factura</th>
+                            <th>fecha</th>
+                            <th>Recibo</th>
+                            <th>Estudiante</th>
+                            <th>Concepto</th>
+                            <th>Monto (C$)</th>
+                            <th>Monto (USD)</th>
+                            <th>Tipo de Pago</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for detalle in detalles %}
+                        <tr>
+                            <td>{{ detalle.FacturaID }}</td>
+                            <td>{{ detalle.Fecha|date:"d/m/Y" }}</td>
+                            <td>{{ detalle.ReciboID.ReciboID }}</td>
+                            <td>
+                                {{ detalle.ReciboID.FacturaID.EstudianteID.NombreCompleto }}
+                            </td>
+                            <td>
+                                {% if detalle.ServicioID %}
+                                    {{ detalle.ServicioID.NombreServicio }}
+                                {% elif detalle.VarianteProductoID %}
+                                    {{ detalle.VarianteProductoID }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                            <td>C$ {{ detalle.MontoCordobas|floatformat:2 }}</td>
+                            <td>$ {{ detalle.MontoUSD|floatformat:2 }}</td>
+                            <td>{{ detalle.TipoPago }}</td>
+                            <td>
+                                {% if detalle.Anulada %}
+                                    <span class="badge bg-danger">Anulada</span>
+                                {% else %}
+                                    <span class="badge bg-success">Activa</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="9" class="text-center">No hay recibos asociados a este arqueo.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <a href="{% url 'facturacion:lista_arqueos' %}" class="btn btn-secondary mt-3">Volver a Historial de Arqueos</a>
+</div>
+{% endblock %}

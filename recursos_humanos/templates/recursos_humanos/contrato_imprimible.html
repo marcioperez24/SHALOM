@@ -1,0 +1,105 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Contrato Laboral - {{ empleado.cedula }}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/dist/css/all.min.css">
+    <style>
+        body { background-color: #f5f5f5; font-family: 'Times New Roman', Times, serif; color: #333; }
+        .hoja-contrato {
+            background: white; 
+            width: 21.59cm; /* Tamaño Carta */
+            min-height: 27.94cm;
+            padding: 2.5cm; 
+            margin: 20px auto; 
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            position: relative;
+        }
+        .header-colegio { border-bottom: 2px solid #004488; margin-bottom: 30px; }
+        .clausula { font-weight: bold; margin-top: 20px; text-decoration: underline; text-transform: uppercase; display: block; }
+        .texto-contrato { text-align: justify; line-height: 1.6; font-size: 11pt; }
+        .firma-box { margin-top: 80px; }
+        
+        @media print {
+            body { background: none; margin: 0; padding: 0; }
+            .hoja-contrato { box-shadow: none; margin: 0; width: 100%; padding: 1.5cm; }
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container no-print mt-3 mb-3 text-center">
+        <div class="btn-group">
+            <button onclick="window.print()" class="btn btn-primary">
+                <i class="fas fa-print"></i> Imprimir Contrato
+            </button>
+            <a href="{% url 'recursos_humanos:expediente_empleado' empleado.pk %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Volver al Expediente
+            </a>
+        </div>
+    </div>
+
+    <div class="hoja-contrato texto-contrato">
+        <div class="header-colegio text-center pb-3">
+            <h3 class="fw-bold mb-0" style="color: #004488;">COLEGIO CRISTIANO SHALOM</h3>
+            <p class="small mb-0">"Instruye al niño en su camino..."</p>
+            <p class="small mb-0">León, Nicaragua</p>
+        </div>
+
+        <div class="text-center mb-4">
+            <h5 class="fw-bold">CONTRATO INDIVIDUAL DE TRABAJO POR TIEMPO INDEFINIDO</h5>
+        </div>
+
+        <p>
+            Nosotros, <strong>COLEGIO CRISTIANO SHALOM</strong>, Institución Educativa de la ciudad de León, y por otra parte el/la Sr(a). 
+            <strong>{{ empleado.nombres }} {{ empleado.apellidos }}</strong>, identificado con Cédula de Identidad No. 
+            <strong>{{ empleado.cedula }}</strong>, convenimos en celebrar el presente contrato sujeto a las siguientes cláusulas:
+        </p>
+
+        <span class="clausula">Primera: Objeto del Contrato</span>
+        <p>El Trabajador se obliga a prestar sus servicios personales al Empleador en calidad de <strong>{{ empleado.cargo }}</strong>, desempeñando las funciones con eficiencia, puntualidad y esmero.</p>
+
+        <span class="clausula">Segunda: Jornada de Trabajo</span>
+        <p>
+            Dada la naturaleza docente/administrativa del cargo, el trabajador cumplirá una jornada laboral de la siguiente manera: 
+            <strong>Lunes a Viernes de 7:00 AM a 12:00 PM</strong> y de <strong>1:00 PM a 5:00 PM</strong>. 
+            El trabajador dispondrá de una hora de almuerzo no computable en la jornada de trabajo.
+        </p>
+
+        <span class="clausula">Tercera: Remuneración y Beneficios</span>
+        <p>
+            El Empleador pagará una remuneración mensual de <strong>C$ {{ contrato.salario_base|floatformat:2 }}</strong>. 
+            Dicha suma será cancelada de forma mensual/quincenal. 
+            {% if contrato.paga_inss %}Se realizarán las deducciones de Ley para el Seguro Social (7%).{% endif %}
+            {% if contrato.porcentaje_antiguedad > 0 %}Adicionalmente, se reconoce un {{ contrato.porcentaje_antiguedad }}% en concepto de antigüedad.{% endif %}
+        </p>
+
+        <span class="clausula">Cuarta: Disciplina y Ética Cristiana</span>
+        <p>Siendo el Colegio una institución de principios cristianos, el trabajador se compromete a mantener una conducta moral intachable, el uso correcto del uniforme asignado y el respeto a la normativa interna de la institución.</p>
+
+        <span class="clausula">Quinta: Vigencia</span>
+        <p>El presente contrato entra en vigor el día <strong>{{ empleado.fecha_contratacion|date:"d" }} de {{ empleado.fecha_contratacion|date:"F" }} del año {{ empleado.fecha_contratacion|date:"Y" }}</strong>.</p>
+
+        <div class="row firma-box text-center">
+            <div class="col-6">
+                <div style="border-top: 1px solid #000; width: 80%; margin: 0 auto; padding-top: 10px;">
+                    <strong>Representante Legal</strong><br>
+                    Colegio Cristiano Shalom
+                </div>
+            </div>
+            <div class="col-6">
+                <div style="border-top: 1px solid #000; width: 80%; margin: 0 auto; padding-top: 10px;">
+                    <strong>{{ empleado.nombres }} {{ empleado.apellidos }}</strong><br>
+                    Cédula: {{ empleado.cedula }}
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-5 small text-muted text-center">
+            <p>Documento generado por el Sistema de Gestión Shalom - {{ fecha_hoy|date:"d/m/Y" }}</p>
+        </div>
+    </div>
+</body>
+</html>

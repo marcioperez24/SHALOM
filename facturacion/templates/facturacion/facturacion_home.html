@@ -1,0 +1,286 @@
+{% extends 'principal/base.html' %}
+{% load static %}
+
+{% block page_title %}
+Panel de Facturación
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+/* ===============================
+    ESTILOS GENERALES Y RESPONSIVE
+================================= */
+.facturacion-container { 
+    font-family: 'Poppins', 'Segoe UI', sans-serif;
+    padding: 15px;
+}
+
+h2.display-5 {
+    font-size: 2.2rem;
+}
+
+.card {
+    transition: transform 0.2s ease, box-shadow 0.3s ease;
+    border-radius: 0.5rem; 
+}
+
+.card:hover {
+    transform: translateY(-4px); 
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+.card-header {
+     border-top-left-radius: 0.5rem; 
+     border-top-right-radius: 0.5rem;
+}
+.card-header h5 {
+    font-size: 1.1rem;
+    font-weight: 500; 
+}
+
+/* Textos adaptativos */
+p.lead {
+    font-size: 1rem;
+    margin-bottom: 10px;
+}
+
+/* Ajuste de botones */
+.card .btn {
+    font-weight: 500;
+    font-size: 0.95rem;
+    padding: 10px 15px; 
+    border-radius: 0.375rem; 
+}
+
+/* ====== BREAKPOINTS RESPONSIVE ====== */
+
+@media (max-width: 992px) {
+    h2.display-5 {
+        font-size: 1.9rem;
+        text-align: center;
+    }
+    p.lead {
+        text-align: center;
+        font-size: 0.95rem;
+    }
+    .card-header h5 {
+        font-size: 1rem;
+    }
+     .row.g-4 {
+        justify-content: center; 
+    }
+}
+
+@media (max-width: 768px) {
+    .facturacion-container { 
+        padding: 10px;
+    }
+    h2.display-5 {
+        font-size: 1.6rem;
+    }
+    .card {
+        margin-bottom: 20px;
+    }
+    .card .btn {
+        font-size: 0.9rem;
+        padding: 9px 12px;
+    }
+}
+
+@media (max-width: 576px) {
+    h2.display-5 {
+        font-size: 1.4rem;
+    }
+    p.lead {
+        font-size: 0.9rem;
+    }
+    .card-header h5 {
+        font-size: 0.95rem;
+    }
+    .card .btn {
+        width: 100%;
+        font-size: 0.9rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5 facturacion-container"> 
+    <div class="row mb-4 align-items-center">
+        <div class="col-12 text-center text-md-start">
+            <h2 class="display-5 fw-bold">Panel de Facturación</h2>
+            <p class="lead text-muted">
+                Administra facturas, pagos, arqueos y reportes financieros.
+            </p>
+        </div>
+    </div>
+
+    <hr>
+
+    <div class="row g-4 justify-content-center">
+        
+        <div class="col-sm-10 col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0 d-flex align-items-center">
+                        <i class="fas fa-file-invoice-dollar me-2"></i> Gestión de Facturas
+                    </h5>
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <p class="card-text">Consulta, edita y gestiona el historial completo de facturas de los estudiantes.</p>
+                    <a href="{% url 'facturacion:lista_facturas' %}" class="btn btn-outline-primary mt-auto">
+                        <i class="fas fa-file-invoice-dollar me-2"></i> Ir a Facturas
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-10 col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm" style="border-color: #6f42c1;">
+                <div class="card-header text-white" style="background-color: #6f42c1;">
+                    <h5 class="mb-0 d-flex align-items-center">
+                        <i class="fas fa-box-open me-2"></i> Inventario / Tienda
+                    </h5>
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <p class="card-text">Administra productos, variaciones (talla/color) para vender junto a los servicios.</p>
+                    <a href="{% url 'inventario:lista_productos' %}" class="btn text-white mt-auto" style="background-color: #6f42c1; border-color: #6f42c1;">
+                        <i class="fas fa-box-open me-2"></i> Ver Catálogo
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-10 col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-dark">
+                <div class="card-header text-white bg-dark">
+                    <h5 class="mb-0 d-flex align-items-center">
+                        <i class="fas fa-truck-loading me-2"></i> Compras y Abastecimiento
+                    </h5>
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <p class="card-text">Registra compras de proveedores para aumentar automáticamente el stock en inventario.</p>
+                    <a href="{% url 'inventario:lista_compras' %}" class="btn btn-outline-dark mt-auto">
+                        <i class="fas fa-shopping-cart me-2"></i> Ver Compras
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-10 col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-info">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0 d-flex align-items-center">
+                        <i class="fas fa-chart-line me-2"></i> Informes de Pagos
+                    </h5>
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <p class="card-text">Visualiza informes detallados de pagos, saldos pendientes y movimientos financieros.</p>
+                    <a href="{% url 'facturacion:pagos' %}" class="btn btn-outline-info mt-auto">
+                        <i class="fas fa-chart-line me-2"></i> Ver Informes
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-10 col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-warning">
+                <div class="card-header bg-warning text-dark"> 
+                    <h5 class="mb-0 d-flex align-items-center">
+                        <i class="fas fa-cash-register me-2"></i> Historial de Arqueos
+                    </h5>
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <p class="card-text">Revisa los arqueos de caja diarios y consulta los recibos asociados a cada uno.</p>
+                    <a href="{% url 'facturacion:lista_arqueos' %}" class="btn btn-outline-warning mt-auto">
+                        <i class="fas fa-cash-register me-2"></i> Ver Arqueos
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-10 col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0 d-flex align-items-center">
+                        <i class="fas fa-money-check-alt me-2"></i> Informe de Aranceles
+                    </h5>
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <p class="card-text">Visualiza el estado de pagos de Matrícula y Cuotas Mensuales por estudiante.</p>
+                    <a href="{% url 'facturacion:informe_aranceles' %}" class="btn btn-outline-danger mt-auto">
+                        <i class="fas fa-money-check-alt me-2"></i> Ver Aranceles
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-10 col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-success">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0 d-flex align-items-center">
+                        <i class="fas fa-calendar-alt me-2"></i> Consulta de Ingresos
+                    </h5>
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <p class="card-text">Genera consultas de ingresos totales filtrados por un rango de fechas específico.</p>
+                    <a href="{% url 'facturacion:consulta_ingresos' %}" class="btn btn-outline-success mt-auto">
+                        <i class="fas fa-calendar-alt me-2"></i> Ingresos por Período
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-10 col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-secondary">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0 d-flex align-items-center">
+                        <i class="fas fa-search-dollar me-2"></i> Saldos Pendientes
+                    </h5>
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <p class="card-text">Muestra las cuentas por cobrar totales y el saldo pendiente segmentado por servicio.</p>
+                    <a href="{% url 'facturacion:consulta_saldos_pendientes' %}" class="btn btn-outline-secondary mt-auto">
+                        <i class="fas fa-file-alt me-2"></i> Ver Cuentas por Cobrar
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-10 col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0 d-flex align-items-center">
+                        <i class="fas fa-bell me-2"></i> Facturas Vencidas
+                    </h5>
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <p class="card-text">Lista todas las facturas que presentan un saldo pendiente de pago (cobranza activa).</p>
+                    <a href="{% url 'facturacion:consulta_facturas_pendientes' %}" class="btn btn-outline-danger mt-auto">
+                        <i class="fas fa-eye me-2"></i> Ver Facturas Pendientes
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-10 col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-dark">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0 d-flex align-items-center">
+                        <i class="fas fa-user-check me-2"></i> Estado de Cuenta Alumno
+                    </h5>
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <p class="card-text">Genera un reporte detallado de pagos y deudas de un estudiante específico por año.</p>
+                    <a href="{% url 'facturacion:estado_cuenta_estudiante' %}" class="btn btn-outline-dark mt-auto">
+                        <i class="fas fa-print me-2"></i> Generar Estado Cuenta
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

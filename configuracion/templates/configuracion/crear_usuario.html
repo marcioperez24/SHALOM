@@ -1,0 +1,27 @@
+{% extends 'principal/base.html' %}
+{% load crispy_forms_tags %} {# Necesario para Crispy Forms #}
+
+{% block page_title %}
+Crear Usuario
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="dashboard-card p-4"> {# Reutilizamos la clase de tarjeta del dashboard #}
+                <h2 class="mb-4 text-center">Crear Nuevo Usuario</h2>
+                <form method="post">
+                    {% csrf_token %} {# ¡Siempre necesario para formularios POST! #}
+
+                    {# Renderiza el formulario de Django con Crispy Forms #}
+                    {{ form|crispy }}
+
+                    <button type="submit" class="btn btn-primary w-100 mt-3">Crear Usuario</button>
+                    <a href="{% url 'configuracion:listar_usuarios' %}" class="btn btn-outline-secondary w-100 mt-2">Cancelar</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

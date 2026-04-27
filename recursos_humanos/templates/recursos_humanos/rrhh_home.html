@@ -1,0 +1,103 @@
+{% extends 'principal/base.html' %}
+
+{% block page_title %}Recursos Humanos{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="fw-bold">Gestión de Personal y Planilla</h2>
+            <p class="text-muted">Bienvenido al módulo de administración de capital humano del Colegio Shalom.</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-6 col-lg-3">
+            <div class="card h-100 shadow-sm border-0 transition-hover">
+                <div class="card-body text-center p-4">
+                    <div class="icon-box bg-primary-subtle text-primary rounded-circle mx-auto mb-3" style="width: 70px; height: 70px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-user-tie fa-2x"></i>
+                    </div>
+                    <h4>Empleados</h4>
+                    <p class="text-muted small">Registra nuevos ingresos, edita información personal y gestiona cargos.</p>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'recursos_humanos:crear_empleado' %}" class="btn btn-outline-primary">Nuevo Ingreso</a>
+                        <a href="{% url 'recursos_humanos:lista_empleados' %}" class="btn btn-primary">Ver Listado</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="card h-100 shadow-sm border-0 transition-hover">
+                <div class="card-body text-center p-4">
+                    <div class="icon-box bg-success-subtle text-success rounded-circle mx-auto mb-3" style="width: 70px; height: 70px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-file-invoice-dollar fa-2x"></i>
+                    </div>
+                    <h4>Planilla Mensual</h4>
+                    <p class="text-muted small">Genera el pago del mes, calcula INSS/IR y emite la nómina general.</p>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'recursos_humanos:nomina_general' %}" class="btn btn-success">
+                            <i class="fas fa-list-ol me-2"></i>Ver Nómina del Mes
+                        </a>
+                        <a href="#" class="btn btn-outline-success disabled">
+                            <i class="fas fa-history me-2"></i>Histórico de Pagos
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="card h-100 shadow-sm border-0 transition-hover">
+                <div class="card-body text-center p-4">
+                    <div class="icon-box bg-warning-subtle text-warning rounded-circle mx-auto mb-3" style="width: 70px; height: 70px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-cogs fa-2x"></i>
+                    </div>
+                    <h4>Configuración</h4>
+                    <p class="text-muted small">Ajusta tasas de impuestos, bonos de antigüedad y conceptos salariales.</p>
+                    <div class="d-grid gap-2">
+                        <a href="#" class="btn btn-warning text-white disabled">Parámetros de Ley</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="card h-100 shadow-sm border-0 transition-hover">
+                <div class="card-body text-center p-4">
+                    <div class="icon-box bg-info-subtle text-info rounded-circle mx-auto mb-3" style="width: 70px; height: 70px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-barcode fa-2x"></i>
+                    </div>
+                    <h4>Control Asistencia</h4>
+                    <p class="text-muted small">Registra entrada y salida del personal activando el lector de código de barras.</p>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'recursos_humanos:gestion_asistencia' %}" class="btn btn-info text-white shadow-sm">
+                            <i class="fas fa-tasks me-2"></i>Administrar Asistencia
+                        </a>
+                        <a href="{% url 'recursos_humanos:kiosko_asistencia' %}" target="_blank" class="btn btn-outline-info">
+                            <i class="fas fa-desktop me-2"></i>Abrir Kiosko
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .transition-hover {
+        transition: all 0.3s ease;
+    }
+    .transition-hover:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+    }
+    .icon-box i {
+        transition: transform 0.3s ease;
+    }
+    .transition-hover:hover .icon-box i {
+        transform: scale(1.1);
+    }
+</style>
+{% endblock %}

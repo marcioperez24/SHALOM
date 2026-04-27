@@ -1,0 +1,128 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Bloqueado - Licencia Vencida</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    
+    <style>
+        /* Fondo degradado suave */
+        body { 
+            background: linear-gradient(135deg, #f0f2f5 0%, #e0e5eb 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Contenedor principal del bloqueo */
+        .lock-container { 
+            max-width: 650px; 
+            width: 90%; /* Responsivo: Ocupa 90% del ancho en móviles */
+            padding: 40px; 
+            border-radius: 15px; /* Bordes más suaves */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15); /* Sombra más profunda */
+            transition: all 0.3s ease;
+        }
+
+        /* Estilo para el icono de bloqueo */
+        .lock-icon-container {
+            font-size: 6rem;
+            color: #dc3545; /* Rojo de peligro */
+            margin-bottom: 20px;
+            animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both;
+            transform: translate3d(0, 0, 0);
+            backface-visibility: hidden;
+            perspective: 1000px;
+        }
+
+        /* Animación de temblor (símbolo de alerta) */
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+        
+        /* Estilo para el logo */
+        .header-logo {
+            max-width: 150px;
+            margin-bottom: 25px;
+        }
+
+        /* Ajuste de tipografía */
+        h1 {
+            font-weight: 700;
+        }
+        .lead {
+            font-size: 1.25rem;
+            color: #495057;
+        }
+        
+        /* Contenedor de contacto fijo */
+        .footer-contact {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px dashed #ced4da; /* Línea de división más notoria */
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="container">
+        <div class="lock-container bg-white mx-auto text-center">
+            
+            <img src="{% static 'principal/img/Shalom.png' %}" alt="Logo del Colegio" class="header-logo">
+            
+            <div class="lock-icon-container mx-auto">
+                 <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            
+            <h1 class="text-danger">Sistema Bloqueado</h1>
+            
+            <p class="lead mt-4">
+                La licencia para utilizar el Sistema de Colegio ha **expirado** o fue **revocada**.
+            </p>
+            
+            {% if licencia %}
+            <div class="alert alert-danger bg-danger-subtle border-0 text-dark p-3 mt-4 mx-auto" style="max-width: 400px;">
+                <p class="mb-0 fw-bold">
+                    <i class="fas fa-calendar-times me-2"></i> Fecha de Caducidad:
+                    <span class="d-block mt-1 fs-5">{{ licencia.fecha_caducidad|date:"d M Y" }}</span>
+                </p>
+            </div>
+            {% endif %}
+
+            <p class="mt-4">
+                Para **restaurar el servicio** y acceder a sus datos, por favor, contacte inmediatamente a soporte para renovar su licencia.
+            </p>
+            
+            <div class="footer-contact">
+                <p class="text-muted small mb-1 fw-bold">SOPORTE TÉCNICO Y LICENCIAMIENTO</p>
+                
+                <p class="text-secondary mb-1">
+                    <i class="fas fa-phone-alt me-2"></i> +505 5764-9964 (Llamada o WhatsApp)
+                </p>
+                <p class="text-secondary mb-3">
+                    <i class="fas fa-envelope me-2"></i> tecnovisionnic.04@gmail.com
+                </p>
+
+                <p class="text-muted small mb-0">
+                    <img src="{% static 'principal/img/Technovision.png' %}" alt="Technovision Logo" style="max-height: 25px; vertical-align: middle;">
+                    Powered by TECHNOVISION S.A
+                </p>
+            </div>
+
+            <a href="{% url 'login' %}" class="btn btn-outline-secondary btn-lg mt-4">
+                <i class="fas fa-sign-in-alt me-2"></i> Ir a Login
+            </a>
+            
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

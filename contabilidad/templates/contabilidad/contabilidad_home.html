@@ -1,0 +1,73 @@
+{% extends 'principal/base.html' %}
+
+{% block page_title %}Módulo de Contabilidad{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm border-0 text-center h-100 p-3">
+                <div class="card-body">
+                    <div class="bg-primary-light p-4 rounded-circle d-inline-block mb-3">
+                        <i class="fas fa-cash-register fa-3x text-primary"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark">Movimientos de Caja</h5>
+                    <p class="text-muted small">Registra y revisa los ingresos y egresos diarios del colegio.</p>
+                    <a href="{% url 'contabilidad:listado_movimientos' %}" class="btn btn-primary w-100 fw-bold">
+                        Ver Movimientos
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm border-0 text-center h-100 p-3">
+                <div class="card-body">
+                    <div class="bg-success-light p-4 rounded-circle d-inline-block mb-3">
+                        <i class="fas fa-file-invoice-dollar fa-3x text-success"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark">Planilla de Docentes</h5>
+                    <p class="text-muted small">Gestión de pagos, deducciones de ley (INSS/IR) y bonos.</p>
+                    <button class="btn btn-success w-100 fw-bold" disabled>
+                        Próximamente
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm border-0 text-center h-100 p-3">
+                <div class="card-body">
+                    <div class="bg-info-light p-4 rounded-circle d-inline-block mb-3">
+                        <i class="fas fa-list-ul fa-3x text-info"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark">Categorías</h5>
+                    <p class="text-muted small">Configura los conceptos de gastos e ingresos del sistema.</p>
+                    <a href="/admin/contabilidad/categoriamovimiento/" class="btn btn-info text-white w-100 fw-bold">
+                        Configurar
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-primary-light {
+        background-color: #e7f1ff;
+    }
+
+    .bg-success-light {
+        background-color: #e8f5e9;
+    }
+
+    .bg-info-light {
+        background-color: #e0f7fa;
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+        transition: 0.3s;
+    }
+</style>
+{% endblock %}

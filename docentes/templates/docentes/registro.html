@@ -1,0 +1,71 @@
+{% extends 'principal/base.html' %}
+
+{% block title %}Registrar Nuevo Docente{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white py-3">
+                    <h4 class="mb-0">
+                        <i class="fas {% if editar %}fa-user-edit{% else %}fa-user-plus{% endif %} me-2"></i>
+                        {% if editar %}Editar Información del Docente{% else %}Registrar Nuevo Docente{% endif %}
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Nombres</label>
+                                {{ form.nombres }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Apellidos</label>
+                                {{ form.apellidos }}
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Cédula de Identidad</label>
+                                {{ form.cedula }}
+                                {% if form.cedula.errors %}
+                                    <div class="text-danger small">{{ form.cedula.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Fecha de Contratación</label>
+                                {{ form.fecha_contratacion }}
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Teléfono</label>
+                                {{ form.telefono }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Correo Electrónico</label>
+                                {{ form.email }}
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Dirección Domiciliar</label>
+                            {{ form.direccion }}
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'docentes_home' %}" class="btn btn-light me-md-2">Cancelar</a>
+                            <button type="submit" class="btn btn-primary px-5">Guardar Docente</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

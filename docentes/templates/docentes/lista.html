@@ -1,0 +1,147 @@
+{% extends 'principal/base.html' %}
+
+{% block title %}Listado de Docentes{% endblock %}
+{% block page_title %}Listado de Docentes{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-gray-800">
+            <i class="fas fa-users me-2 text-primary"></i>Directorio de Docentes
+        </h2>
+        {% if perms.docentes.crear_docentes %}
+        <a href="{% url 'registrar_docente' %}" class="btn btn-primary shadow-sm">
+            <i class="fas fa-plus me-1"></i> Nuevo Docente
+        </a>
+        {%endif%}
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            
+            <form method="GET" class="mb-4">
+                <div class="input-group">
+                    <input type="text" name="q" class="form-control" placeholder="Buscar por nombre, apellido o cédula..." value="{{ query|default:'' }}">
+                    <button class="btn btn-outline-primary" type="submit">
+                        <i class="fas fa-search"></i> Buscar
+                    </button>
+                    {% if query %}
+                        <a href="{% url 'lista_docentes' %}" class="btn btn-outline-secondary" title="Limpiar filtro">
+                            <i class="fas fa-times"></i>
+                        </a>
+                    {% endif %}
+                </div>
+            </form>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Nombre Completo</th>
+                            <th>Cédula</th>
+                            <th>Contacto</th>
+                            <th>Estado</th>
+                            <th class="text-end">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for docente in page_obj %}
+                        <tr class="{% if not docente.activo %}table-light text-muted{% endif %}"> <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center me-2 {% if not docente.activo %}bg-secondary{% endif %}" style="width: 40px; height: 40px;">
+                                        {{ docente.nombres|slice:":1" }}{{ docente.apellidos|slice:":1" }}
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold">{{ docente.nombres }} {{ docente.apellidos }}</div>
+                                        <small class="text-muted">Contratado: {{ docente.fecha_contratacion|date:"d/m/Y" }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="badge bg-light text-dark border">{{ docente.cedula }}</span></td>
+                            <td>
+                                <div class="small">
+                                    <i class="fas fa-phone me-1 text-muted"></i> {{ docente.telefono|default:"--" }}<br>
+                                    <i class="fas fa-envelope me-1 text-muted"></i> {{ docente.email|default:"--" }}
+                                </div>
+                            </td>
+                            <td>
+                                {% if docente.activo %}
+                                    <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill">Activo</span>
+                                {% else %}
+                                    <span class="badge bg-danger bg-opacity-10 text-danger px-3 py-2 rounded-pill">Inactivo</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                {% if perms.docentes.editar_docentes %}
+                                <a href="{% url 'editar_docente' docente.id %}" class="btn btn-sm btn-outline-primary" title="Editar Información">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                {%endif%}
+
+                                {% if docente.activo %}
+                                    {% if perms.docentes.eliminar_docentes %}
+                                    <a href="{% url 'cambiar_estado_docente' docente.id %}" 
+                                       class="btn btn-sm btn-outline-danger ms-1" 
+                                       title="Dar de baja (Desactivar)"
+                                       onclick="return confirm('⚠️ ¿Estás seguro que deseas DAR DE BAJA a {{ docente.nombres }}?\n\nEl docente ya no tendrá acceso al sistema, pero sus datos históricos se conservarán.');">
+                                        <i class="fas fa-user-times"></i>
+                                    </a>
+                                    {%endif%}
+                                {% else %}
+                                    <a href="{% url 'cambiar_estado_docente' docente.id %}" 
+                                       class="btn btn-sm btn-outline-success ms-1" 
+                                       title="Reactivar Docente"
+                                       onclick="return confirm('¿Deseas REACTIVAR a {{ docente.nombres }}?');">
+                                        <i class="fas fa-user-check"></i>
+                                    </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-muted">
+                                <i class="fas fa-folder-open fa-3x mb-3"></i>
+                                <p>No se encontraron docentes con ese criterio.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if page_obj.has_other_pages %}
+            <nav aria-label="Navegación de páginas" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">Anterior</a>
+                        </li>
+                    {% endif %}
+
+                    <li class="page-item disabled">
+                        <span class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+                    </li>
+
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}">Siguiente</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,108 @@
+{% extends 'principal/base.html' %}
+
+{% block page_title %}Listado de Personal{% endblock %}
+
+{% block content %}
+<div class="card shadow border-0">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 text-primary fw-bold">Personal Registrado</h5>
+        
+        <form method="GET" class="d-flex align-items-center gap-2">
+            <span class="text-muted small fw-bold text-uppercase d-none d-md-inline">Periodo de Nómina:</span>
+            <select name="mes" class="form-select form-select-sm" style="width: auto;" onchange="this.form.submit()">
+                <option value="1" {% if mes_filtro == 1 %}selected{% endif %}>Enero</option>
+                <option value="2" {% if mes_filtro == 2 %}selected{% endif %}>Febrero</option>
+                <option value="3" {% if mes_filtro == 3 %}selected{% endif %}>Marzo</option>
+                <option value="4" {% if mes_filtro == 4 %}selected{% endif %}>Abril</option>
+                <option value="5" {% if mes_filtro == 5 %}selected{% endif %}>Mayo</option>
+                <option value="6" {% if mes_filtro == 6 %}selected{% endif %}>Junio</option>
+                <option value="7" {% if mes_filtro == 7 %}selected{% endif %}>Julio</option>
+                <option value="8" {% if mes_filtro == 8 %}selected{% endif %}>Agosto</option>
+                <option value="9" {% if mes_filtro == 9 %}selected{% endif %}>Septiembre</option>
+                <option value="10" {% if mes_filtro == 10 %}selected{% endif %}>Octubre</option>
+                <option value="11" {% if mes_filtro == 11 %}selected{% endif %}>Noviembre</option>
+                <option value="12" {% if mes_filtro == 12 %}selected{% endif %}>Diciembre</option>
+            </select>
+            <input type="number" name="anio" class="form-control form-control-sm" value="{{ anio_filtro }}" style="width: 80px;" onchange="this.form.submit()">
+        </form>
+
+        <a href="{% url 'recursos_humanos:crear_empleado' %}" class="btn btn-primary d-none d-md-inline-block">
+            <i class="fas fa-plus"></i> Nuevo Empleado
+        </a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Empleado</th>
+                        <th>Cédula</th>
+                        <th>Cargo</th>
+                        <th>Salario Base</th>
+                        <th>INSS/IR</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for emp in empleados %}
+                    <tr>
+                        <td>
+                            <div class="fw-bold">
+                                {{ emp.apellidos }}, {{ emp.nombres }}
+                                {% if not emp.activo %}
+                                    <span class="badge bg-danger rounded-pill" style="font-size: 0.7rem;">Inactivo</span>
+                                {% endif %}
+                            </div>
+                            <small class="text-muted">INSS: {{ emp.numero_inss|default:"N/A" }}</small>
+                        </td>
+                        <td>{{ emp.cedula }}</td>
+                        <td><span class="badge bg-info text-dark">{{ emp.cargo }}</span></td>
+                        <td>C$ {{ emp.contrato.salario_base|floatformat:2 }}</td>
+                        <td>
+                            {% if emp.contrato.paga_inss %}<span class="badge bg-success">INSS</span>{% endif %}
+                            {% if emp.contrato.paga_ir %}<span class="badge bg-warning text-dark">IR</span>{% endif %}
+                        </td>
+                        <td class="text-center">
+                            <div class="btn-group" role="group">
+                                {% if emp.activo or emp.ya_pagado %}
+                                <a href="{% url 'recursos_humanos:generar_pago_mes' emp.pk %}?mes={{mes_filtro}}&anio={{anio_filtro}}" 
+                                   class="btn btn-sm {% if emp.ya_pagado %}btn-success text-white{% else %}btn-outline-success{% endif %}" 
+                                   title="{% if emp.ya_pagado %}Ver Comprobante de Pago{% else %}Procesar Pago del Periodo{% endif %}">
+                                    <i class="fas {% if emp.ya_pagado %}fa-file-invoice-dollar{% else %}fa-money-bill-wave{% endif %}"></i>
+                                </a>
+                                {% else %}
+                                <button class="btn btn-sm btn-outline-secondary disabled" title="Empleado Inactivo - No se puede procesar pago">
+                                    <i class="fas fa-ban"></i>
+                                </button>
+                                {% endif %}
+
+                                {% if emp.ya_pagado %}
+                                <a href="{% url 'recursos_humanos:generar_pago_mes' emp.pk %}?mes={{mes_filtro}}&anio={{anio_filtro}}&forzar_edicion=1" 
+                                class="btn btn-sm btn-outline-warning" 
+                                title="Editar montos del pago actual">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                {% endif %}
+                                <a href="{% url 'recursos_humanos:expediente_empleado' emp.pk %}" 
+                                   class="btn btn-sm btn-outline-info" title="Ver Expediente">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                
+                                <a href="{% url 'recursos_humanos:editar_empleado' emp.pk %}" 
+                                   class="btn btn-sm btn-outline-secondary" title="Editar Datos del Empleado">
+                                    <i class="fas fa-user-edit"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">No hay empleados registrados todavía.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

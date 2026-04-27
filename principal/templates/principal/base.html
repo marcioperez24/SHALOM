@@ -1,0 +1,426 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sistema de Colegio{% endblock %}</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{% static 'principal/css/custom.css' %}">
+    <link rel="stylesheet" href="{% static 'principal/css/style.css' %}">
+    
+    <style>
+        /* Variables tomadas de tu CSS (ajustadas para CSS en línea) */
+        :root {
+            --sidebar-width: 270px; /* Slightly wider for elegant spacing */
+            --primary-blue: #4f46e5;
+            --sidebar-border: #e5e7eb;
+            --text-color-medium: #4b5563;
+            --text-color-dark: #111827;
+            /* Variables de Tema (Para fallback rápido) */
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+        }
+        
+        /* Tema Oscuro (Usamos dark-theme consistentemente) */
+        body.dark-theme {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --sidebar-border: #334155;
+        }
+        
+        /* Contenedor principal para el layout */
+        #wrapper {
+            display: flex;
+            min-height: 100vh;
+            width: 100%;
+            /* FIX 2: Previene el desbordamiento horizontal en móvil */
+            overflow-x: hidden; 
+        }
+
+        /* Sidebar Styling: Hacerlo Fijo y Colapsable */
+        #sidebar-wrapper {
+            min-width: var(--sidebar-width);
+            max-width: var(--sidebar-width);
+            position: fixed;
+            transition: margin-left 0.25s ease-out;
+            z-index: 1030;
+            height: 100vh; /* Cambiado de min-height para forzar el límite la pantalla */
+            overflow-y: auto; /* Permite hacer scroll en pantallas pequeñas */
+            display: flex; /* Necesario para que el menu se expanda y 'Powered by' baje */
+            flex-direction: column;
+            background-color: var(--card-bg); /* Fondo general para corregir en móvil */
+            border-right: 1px solid var(--sidebar-border);
+        }
+        
+        /* Estilar el scrollbar del sidebar para que no sea muy invasivo */
+        #sidebar-wrapper::-webkit-scrollbar {
+            width: 5px;
+        }
+        #sidebar-wrapper::-webkit-scrollbar-thumb {
+            background-color: rgba(0,0,0,0.2);
+            border-radius: 5px;
+        }
+
+        /* Contenido Styling: Ajuste de padding según el sidebar */
+        #page-content-wrapper {
+            /* FIX 1: Aseguramos que el contenedor de la página tenga el ancho restante */
+            width: calc(100% - var(--sidebar-width)); 
+            padding-left: var(--sidebar-width);
+            transition: padding-left 0.25s ease-out;
+            min-height: 100vh;
+            padding-top: 0;
+            position: relative; 
+        }
+        
+        /* Header y Navbar: Fijo y con fondo sólido para evitar mezcla */
+        .navbar-custom {
+            margin-bottom: 0;
+            padding: 0.5rem 1.25rem;
+            position: sticky;
+            top: 0;
+            z-index: 1020;
+            background-color: var(--card-bg); 
+            border-bottom: 1px solid var(--sidebar-border);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            width: 100%; 
+        }
+        
+        /* Botón Toggler */
+        .sidebar-toggler {
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--primary-blue);
+            margin-right: 15px;
+        }
+        #closeSidebar {
+            position: absolute;
+            right: 15px;
+            top: 15px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: none !important;
+        }
+
+        /* 1. ESTADO CERRADO (PC) */
+        .sidebar-toggled #sidebar-wrapper {
+            margin-left: calc(var(--sidebar-width) * -1);
+        }
+        /* Cuando el sidebar está cerrado, el contenido debe ocupar el 100% del ancho y no tener padding-left */
+        .sidebar-toggled #page-content-wrapper {
+            padding-left: 0;
+            width: 100%; /* Ocupa todo el ancho */
+        }
+        
+        /* 2. ESTADO MÓVIL (Overlay) */
+        @media (max-width: 768px) {
+            .sidebar-toggler {
+                display: block;
+            }
+            
+            /* Ocultar sidebar por defecto en móvil */
+            #sidebar-wrapper {
+                margin-left: calc(var(--sidebar-width) * -1);
+                box-shadow: none;
+            }
+
+            /* Mostrar sidebar cuando se activa la clase móvil */
+            .sidebar-mobile-show #sidebar-wrapper {
+                margin-left: 0;
+                box-shadow: 4px 0 10px rgba(0, 0, 0, 0.4);
+            }
+            
+            #closeSidebar {
+                display: block !important;
+            }
+
+            /* En móvil, el contenido siempre es full width sin el padding fijo del sidebar */
+            #page-content-wrapper {
+                padding-left: 0;
+                width: 100%;
+            }
+            
+            /* FIX MÓVIL: Permite que el navbar se envuelva y ajustamos el tamaño del título */
+            .navbar-custom .w-100 {
+                flex-wrap: wrap; /* Permite que los elementos pasen a la siguiente línea */
+                padding: 0.5rem;
+            }
+            
+            /* FIX VISIBILIDAD: Ocultamos SOLO el texto "Bienvenido, " en móvil */
+            .user-welcome-text {
+                display: none !important;
+            }
+            
+            /* MOSTRAR NOMBRE DE USUARIO, aumentar ancho y ajustar márgenes */
+            .user-username {
+                display: block !important; 
+                /* AUMENTAMOS el ancho para que quepa el nombre */
+                max-width: 120px; 
+                
+                margin-right: 5px; /* Reducimos el margen derecho para ganar espacio */
+                margin-left: 10px; /* Agregamos un poco de margen izquierdo */
+                
+                overflow: hidden; 
+                text-overflow: ellipsis; 
+                white-space: nowrap;
+            }
+
+            /* Resto de las reglas del navbar */
+            .navbar-brand-custom {
+                font-size: 1.4rem; /* Reducir el tamaño de fuente para que quepa */
+                white-space: normal; /* Permitir que el texto se envuelva */
+                border-left: none !important; /* Quitar la línea azul en móvil para ahorrar espacio */
+                padding-left: 0 !important;
+                margin-left: 10px;
+            }
+            
+        }
+        
+        /* SOLUCIÓN AL MEZCLADO DE TEXTO EN EL HEADER */
+        .navbar-custom .d-flex {
+            white-space: nowrap; 
+            flex-wrap: nowrap;
+        }
+        .navbar-custom .d-flex > * {
+            flex-shrink: 0; 
+        }
+        /* SOBRESCRIBIMOS el flex-wrap para móvil: */
+        @media (max-width: 768px) {
+            .navbar-custom .d-flex {
+                white-space: normal;
+                flex-wrap: wrap; 
+            }
+        }
+    </style>
+</head>
+<body id="page-top">
+    
+    <div class="d-flex" id="wrapper">
+        <div id="sidebar-wrapper">
+             <div class="sidebar-heading">
+                <img src="{% static 'principal/img/Shalom.png' %}" alt="Logo del Colegio" style="width: 50px;">
+                Colegio Shalom <br> <small>Sistema de Colegio</small>
+                <i class="fas fa-times" id="closeSidebar"></i>
+            </div>
+            
+            <div class="list-group list-group-flush">
+                {% if perms.dashboard.ver_dashboard %}
+                <a href="{% url 'dashboard' %}" class="list-group-item list-group-item-action {% if 'dashboard' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="fas fa-fw fa-tachometer-alt"></i> Dashboard
+                </a>
+                {% endif %}
+                
+                {% if perms.Matricula.ver_modulo_Registro %}
+                <a href="{% url 'Matricula:Matricula_home' %}" class="list-group-item list-group-item-action {% if 'Matricula' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="fas fa-user-graduate"></i> Registro Academico
+                </a>
+                {% endif %}
+                
+                <a href="{% url 'reportes:reportes_home' %}" class="list-group-item list-group-item-action {% if 'reportes' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="fas fa-chart-bar"></i> Reportes
+                </a>
+                
+                {% if perms.facturacion.inicio_facturas %}
+                <a href="{% url 'facturacion:facturacion_home' %}" class="list-group-item list-group-item-action {% if 'facturacion' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="fas fa-money-bill-alt"></i> Facturación
+                </a>
+                {% endif %}
+                
+
+                
+                {% if perms.contabilidad.ver_modulo_Contabilidad %}
+                <a href="{% url 'contabilidad:contabilidad_home' %}" class="list-group-item list-group-item-action {% if 'contabilidad' in request.path %}active{% endif %}">
+                    <i class="fas fa-calculator"></i> Contabilidad
+                </a>
+                {% endif %}
+
+                {% if perms.recursos_humanos.ver_modulo_recursos_humanos %}
+                <a href="{% url 'recursos_humanos:rrhh_home' %}" class="list-group-item list-group-item-action {% if 'rrhh' in request.path %}active{% endif %}">
+                    <i class="fas fa-users"></i> Recursos Humanos
+                </a>
+                {% endif %}
+
+                {% if perms.docentes.ver_docentes %}
+                <a href="{% url 'docentes_home' %}" class="list-group-item list-group-item-action {% if 'docentes' in request.path %}active{% endif %}">
+                    <i class="fas fa-fw fa-chalkboard-teacher"></i> Portal Docentes
+                </a>
+                {% endif %}
+
+                {% if perms.configuracion.ver_configuracion %}
+                <a href="{% url 'configuracion:configuracion_home' %}" class="list-group-item list-group-item-action {% if 'configuracion' in request.path %}active{% endif %}">
+                    <i class="fas fa-fw fa-cog"></i> Configuración
+                </a>
+                {% endif %}
+                
+                {% if perms.auth.ver_grupo %}
+                <a href="{% url 'lista_grupos' %}" class="list-group-item list-group-item-action {% if 'gestion' in request.path %}active{% endif %}">
+                    <i class="fas fa-fw fa-users-cog"></i> Gestión de Permisos
+                </a>
+                {% endif %}
+            </div>
+
+            <div style="display: flex; flex-direction: column; align-items: center; padding: 15px; margin-top: auto;">
+                <small style="color: #6c757d; font-size: 0.75rem; margin-bottom: 5px;">Powered by</small>
+                <img src="{% static 'principal/img/Technovision.png' %}" alt="Logo Technovision" style="max-width: 120px; height: auto;">
+            </div>
+
+        </div>
+        
+        <div id="page-content-wrapper">
+            
+            <nav class="navbar navbar-expand-lg navbar-light navbar-custom sticky-top">
+                <div class="w-100 d-flex justify-content-between align-items-center px-4"> 
+                    
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-bars sidebar-toggler" id="sidebarToggle"></i>
+                        <a class="navbar-brand-custom" href="#!">{% block page_title %}Dashboard{% endblock %}</a>
+                    </div>
+                    
+                    <div class="d-flex align-items-center">
+                        
+                        {# Botón de Tema #}
+                        <button id="theme-toggle" class="btn btn-outline-secondary btn-sm me-3" style="width: 40px; height: 32px;">
+                            <i class="fas fa-sun" id="sun-icon"></i>
+                            <i class="fas fa-moon d-none" id="moon-icon"></i>
+                        </button>
+                        
+                        {# Texto de Bienvenida #}
+                        <span class="user-welcome-text me-2">Bienvenido, </span>
+                        <strong class="user-username">{{ user.username }}</strong>
+                        <i class="fas fa-user-circle ms-2" style="font-size: 1.2rem;"></i>
+                        
+                        {# Botón de Cerrar Sesión #}
+                        <form action="{% url 'logout' %}" method="post" class="d-inline ms-3">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-danger">Cerrar Sesión</button>
+                        </form>
+                    </div>
+                </div>
+            </nav>
+            <div class="container-fluid py-4">
+                {% block content %}
+                {% endblock %}
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    {# Código de mensajes de SweetAlert #}
+    {% if messages %}
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                {% for message in messages %}
+                    Swal.fire({
+                        title: '{{ message.tags|title }}!',
+                        text: '{{ message|safe }}',
+                        icon: '{{ message.tags }}', 
+                        timer: 4000,
+                        showConfirmButton: false
+                    });
+                {% endfor %}
+            });
+        </script>
+    {% endif %}
+
+    {# Código de Tema Oscuro #}
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const themeToggle = document.getElementById('theme-toggle');
+            const body = document.body;
+            const sunIcon = document.getElementById('sun-icon');
+            const moonIcon = document.getElementById('moon-icon');
+
+            // 1. Cargar el tema guardado
+            const currentTheme = localStorage.getItem('theme') || 'light';
+            if (currentTheme === 'dark') {
+                body.classList.add('dark-theme'); 
+                sunIcon.classList.add('d-none');
+                moonIcon.classList.remove('d-none');
+            } else {
+                 sunIcon.classList.remove('d-none');
+                 moonIcon.classList.add('d-none');
+            }
+
+            // 2. Manejar el click del toggle
+            if (themeToggle) {
+                themeToggle.addEventListener('click', () => {
+                    body.classList.toggle('dark-theme');
+                    
+                    const newTheme = body.classList.contains('dark-theme') ? 'dark' : 'light';
+                    localStorage.setItem('theme', newTheme);
+                    
+                    // Alternar iconos
+                    if (newTheme === 'dark') {
+                        sunIcon.classList.add('d-none');
+                        moonIcon.classList.remove('d-none');
+                    } else {
+                        sunIcon.classList.remove('d-none');
+                        moonIcon.classList.add('d-none');
+                    }
+                });
+            }
+        });
+    </script>
+    
+    <script>
+        // Función principal de alternar (Toggle)
+        function toggleSidebar() {
+            const isMobile = window.innerWidth <= 768;
+            
+            if (isMobile) {
+                document.body.classList.toggle('sidebar-mobile-show');
+            } else {
+                document.body.classList.toggle('sidebar-toggled');
+                const state = document.body.classList.contains('sidebar-toggled') ? 'closed' : 'open';
+                localStorage.setItem('sidebarState', state);
+            }
+        }
+
+        // 1. Manejador para el botón de PC/Móvil en la barra superior
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        if (sidebarToggle) {
+             sidebarToggle.addEventListener('click', toggleSidebar);
+        }
+
+        // 2. Manejador para el botón de CERRAR en MÓVIL (la X)
+        const closeSidebar = document.getElementById('closeSidebar');
+        if (closeSidebar) {
+             closeSidebar.addEventListener('click', function() {
+                 document.body.classList.remove('sidebar-mobile-show');
+             });
+        }
+        
+        // 3. Cargar el estado guardado al iniciar (Solo para escritorio)
+        window.onload = function() {
+            if (window.innerWidth > 768) {
+                if (localStorage.getItem('sidebarState') === 'closed') {
+                    document.body.classList.add('sidebar-toggled');
+                }
+            } else {
+                document.body.classList.remove('sidebar-mobile-show');
+            }
+        };
+        
+        // Manejar el cambio de tamaño de pantalla
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768) {
+                document.body.classList.remove('sidebar-mobile-show');
+            } else {
+                document.body.classList.remove('sidebar-toggled');
+            }
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

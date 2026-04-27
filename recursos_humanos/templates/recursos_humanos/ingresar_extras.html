@@ -1,0 +1,101 @@
+{% extends 'principal/base.html' %}
+
+{% block page_title %}Calculadora de Planilla{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow border-0 mx-auto" style="max-width: 550px;">
+        <div class="card-header bg-success text-white text-center py-3">
+            <h5 class="mb-0">Calculadora de Planilla (Período: {{ mes_filtro }}/{{ anio_filtro }})</h5>
+        </div>
+        <div class="card-body p-4">
+            <h4 class="fw-bold text-center">{{ empleado.nombres }} {{ empleado.apellidos }}</h4>
+            <div class="text-center mb-4">
+                <span class="badge bg-info text-dark text-uppercase">{{ empleado.cargo }}</span>
+            </div>
+            
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="mes_pago" value="{{ mes_filtro }}">
+                <input type="hidden" name="anio_pago" value="{{ anio_filtro }}">
+
+                <!-- PARÁMETROS LEGALES DE PRORRATEO -->
+                <div class="row mb-3 bg-light p-3 rounded border">
+                    <h6 class="text-secondary fw-bold border-bottom pb-2 mb-3"><i class="fas fa-balance-scale"></i> Parámetros de Ley (MITRAB)</h6>
+                    <div class="col-md-7 mb-2">
+                        <label class="form-label fw-bold small text-muted text-uppercase">Tipo de Nómina:</label>
+                        <select name="tipo_periodo" id="tipo_periodo" class="form-select border-primary" required>
+                            <option value="MENSUAL" {% if pago_actual.tipo_periodo == 'MENSUAL' %}selected{% endif %}>Mensual Completo</option>
+                            <option value="PRIMERA_QUINCENA" {% if pago_actual.tipo_periodo == 'PRIMERA_QUINCENA' %}selected{% endif %}>1ra Quincena (Días 1-15)</option>
+                            <option value="SEGUNDA_QUINCENA" {% if pago_actual.tipo_periodo == 'SEGUNDA_QUINCENA' %}selected{% endif %}>2da Quincena (Días 16-30)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-5 mb-2">
+                        <label class="form-label fw-bold small text-muted text-uppercase">Días a Pagar:</label>
+                        <div class="input-group">
+                            <input type="number" step="0.5" name="dias_trabajados" id="dias_trabajados" class="form-control text-center fw-bold text-primary" 
+                                value="{{ pago_actual.dias_trabajados|default:'30.0' }}" required>
+                            <span class="input-group-text">Días</span>
+                        </div>
+                    </div>
+                    <small class="text-muted d-block mt-2"><i class="fas fa-info-circle"></i> Cambia los días si el empleado tuvo faltas o empezó tarde (Prorrateo).</small>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold small text-muted text-uppercase">Cantidad de Horas Extras:</label>
+                    <div class="input-group input-group-lg">
+                        <span class="input-group-text bg-light"><i class="fas fa-clock text-secondary"></i></span>
+                        <input type="number" step="0.01" name="horas_extras_cantidad" class="form-control" 
+                            value="{{ pago_actual.horas_extras_cantidad|default:'' }}" placeholder="0.0" required autofocus>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold small text-muted text-uppercase">Precio por cada Hora Extra (C$):</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light">C$</span>
+                        <input type="number" step="0.01" name="horas_extras_valor_pago" class="form-control" 
+                            value="{% if pago_actual %}{{ pago_actual.horas_extras_valor_pago }}{% else %}{{ valor_hora_ley }}{% endif %}">
+                    </div>
+                </div>
+
+                <!-- ADDED DEDUCTIONS FORM -->
+                <div class="mb-4 pt-3 border-top border-danger border-opacity-25">
+                    <label class="form-label fw-bold small text-danger text-uppercase">
+                        <i class="fas fa-hand-holding-usd me-1"></i> Adelantos / Otras Deducciones (C$):
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-danger bg-opacity-10 text-danger border-danger border-opacity-50">- C$</span>
+                        <input type="number" step="0.01" name="otras_deducciones" class="form-control border-danger border-opacity-50 text-danger fw-bold" 
+                            value="{{ pago_actual.otras_deducciones|default:'0' }}">
+                    </div>
+                    <small class="text-muted d-block mt-1">Este monto será restado del Neto a Recibir.</small>
+                </div>
+                
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary btn-lg">Calcular y Generar Pago</button>
+                    <a href="{% url 'recursos_humanos:lista_empleados' %}" class="btn btn-light">Cancelar</a>
+                </div>
+            </form>
+        </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const selectPeriodo = document.getElementById('tipo_periodo');
+        const inputDias = document.getElementById('dias_trabajados');
+        
+        selectPeriodo.addEventListener('change', function() {
+            // Si el usuario acaba de cambiar a Quincena, sugerimos 15 días automáticamente para facilitar.
+            // Si regresa a Mensual, sugerimos 30.
+            if (this.value.includes('QUINCENA')) {
+                inputDias.value = '15.0';
+            } else {
+                inputDias.value = '30.0';
+            }
+        });
+    });
+</script>
+{% endblock %}

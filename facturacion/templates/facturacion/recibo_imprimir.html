@@ -1,0 +1,230 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Recibo de Pago No. {{ recibo.ReciboID }}</title>
+    <style>
+        /* Define el tamaño exacto de tu papel continuo */
+        @page {
+            size: 24.13cm 27.94cm; /* Aprox 9.5in x 11in */
+            margin: 0.5in; /* Márgenes de la impresora (aprox 1.27cm) */
+        }
+
+        body {
+            /* --- 1. VOLVEMOS A COURIER (Fuente de Impresora) --- */
+            font-family: 'Courier New', Courier, monospace;
+            
+            /* --- 2. TAMAÑO MÁS GRANDE --- */
+            font-size: 16px;
+            
+            /* --- 3. MÁS SEPARACIÓN (INTERLINEADO) --- */
+            line-height: 1.5;
+            
+            font-weight: bold; /* Mantenemos todo en negrita */
+            margin: 0;
+            padding: 0;
+            color: #000;
+            background-color: #f0f0f0; /* Fondo gris claro SÓLO en pantalla */
+        }
+
+        .recibo {
+            width: 100%;
+            background-color: #fff; /* Fondo blanco para el recibo */
+            padding: 20px;
+            margin: 20px auto; /* Centra el recibo en la pantalla */
+            max-width: 21cm; /* Ancho máximo para que se vea como hoja */
+            box-shadow: 0 0 10px rgba(0,0,0,0.1); /* Sombra SÓLO en pantalla */
+        }
+        
+        /* --- BOTÓN DE IMPRIMIR --- */
+        .print-button-container {
+            text-align: center;
+            margin: 20px auto;
+            max-width: 21cm; 
+        }
+
+        .print-button {
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #fff;
+            background-color: #0d6efd; /* Azul de Bootstrap */
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .print-button:hover {
+            background-color: #0b5ed7;
+        }
+        /* --- FIN BOTÓN DE IMPRIMIR --- */
+
+        .text-center { text-align: center; }
+        .right-align { text-align: right; }
+
+        .recibo-header p {
+            margin: 2px 0;
+        }
+
+        .info-section {
+            margin-bottom: 8px;
+            border-bottom: 1px dashed #000;
+            padding-bottom: 4px;
+        }
+        
+        .info-section p {
+            margin: 0;
+            padding: 1px 0;
+        }
+
+        .details-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 16px; /* Aseguramos que la tabla también tenga 16px */
+        }
+
+        .details-table th, .details-table td {
+            padding: 2px;
+            text-align: left;
+        }
+
+        .details-table th {
+            border-bottom: 1px solid #000;
+            font-weight: bold;
+        }
+
+        .details-table td {
+            border-bottom: 1px dashed #ccc;
+        }
+
+        .totals-section {
+            margin-top: 8px;
+            text-align: right;
+        }
+
+        .totals-section p {
+            margin: 1px 0;
+            font-weight: bold;
+        }
+
+        .footer-text {
+            font-size: 16px; /* Aseguramos que el pie también tenga 16px */
+            font-weight: bold;
+            margin: 2px 0;
+        }
+
+        .header-title {
+            font-size: 20px; /* Aumentado */
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .receipt-title {
+            font-size: 18px; /* Aumentado */
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        /* --- ESTILOS DE IMPRESIÓN --- */
+        @media print {
+            body { 
+                background-color: #fff; /* Fondo blanco al imprimir */
+                margin: 0;
+            }
+            .print-button-container {
+                display: none;
+            }
+            .recibo {
+                width: 100%;
+                margin: 0;
+                padding: 0;
+                box-shadow: none;
+                max-width: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ... (Botón de imprimir se mantiene igual) ... -->
+    <div class="print-button-container">
+        <button class="print-button" onclick="window.print()">
+            Imprimir Recibo
+        </button>
+    </div>
+    
+    <div class="recibo">
+        <div class="text-center recibo-header">
+            <img src="{% static 'facturacion/img/Shalom.png' %}" alt="Logo" style="width: 60px; height: auto; margin-bottom: 5px;">
+            <h1 class="header-title">Colegio Cristiano "Jehová Shalom"</h1>
+            <p>Whatsapp: 84274246</p>
+            <p>Dirección: Colegio Calazans 2 Cuadras al sur, 1/2 Cuadra al oeste.</p>
+        </div>
+
+        <hr style="border-top: 1px dashed #000; margin: 10px 0;">
+
+        <h2 class="receipt-title">Recibo de Caja No. {{ recibo.ReciboID }}</h2>
+
+        <div class="info-section">
+            <p><strong>Factura #:</strong> {{ factura.FacturaID }}</p>
+            <p><strong>Estudiante:</strong> {{ estudiante.NombreCompleto }}</p>
+            <p><strong>Grado/Nivel:</strong> {% if matricula %}{{ matricula.NivelID.NombreNivel }}{% else %}N/A{% endif %}</p>
+        </div>
+
+        <!-- Título de detalles aumentado -->
+        <h3 style="font-size:16px; font-weight:bold; margin-bottom:5px;">Detalles del Pago</h3>
+        <table class="details-table">
+            <thead>
+                <tr>
+                    <th style="width:30%;">Servicio</th>
+                    <th style="width:8%;">Cant</th>
+                    <th class="right-align" style="width:13%;">P/U</th>
+                    <th class="right-align" style="width:17%;">Descuento</th>
+                    <th class="right-align" style="width:17%;">Subtotal</th>
+                    <th class="right-align" style="width:18%;">Monto Pagado</th>
+                    <th class="right-align" style="width:14%;">Saldo</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for detalle in detalles_factura %}
+                <tr>
+                    <td>
+                        {% if detalle.ServicioID %}
+                            {{ detalle.ServicioID.NombreServicio }}
+                        {% elif detalle.VarianteProductoID %}
+                            {{ detalle.VarianteProductoID }}
+                        {% else %}
+                            Desconocido
+                        {% endif %}
+                    </td>
+                    <td>{{ detalle.Cantidad }}</td>
+                    <td class="right-align">{{ factura.Moneda }}{{ detalle.PrecioUnitario|floatformat:2 }}</td>
+                    <td class="right-align">{{ factura.Moneda }}{{ detalle.Descuento|floatformat:2 }}</td>
+                    <td class="right-align">{{ factura.Moneda }}{{ detalle.Subtotal|floatformat:2 }}</td>
+                    <td class="right-align">{{ factura.Moneda }}{{ detalle.MontoPagado|floatformat:2 }}</td>
+                    <td class="right-align">{{ factura.Moneda }}{{ detalle.Saldo|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="totals-section">
+            <p>Total Bruto: {{ factura.Moneda }}{{ factura.Total|floatformat:2 }}</p>
+            <p>Total Descuento: {{ factura.Moneda }}{{ factura.Descuento|floatformat:2 }}</p>
+            <p>Total a Pagar: {{ factura.Moneda }}{{ recibo.MontoPagado|floatformat:2 }}</p>
+            <p>Saldo Pendiente: {{ factura.Moneda }}{{ recibo.Saldo|floatformat:2 }}</p>
+        </div>
+
+        <hr style="border-top: 1px dashed #000; margin: 10px 0;">
+
+        <div class="text-center" style="margin-top: 10px;">
+            <p>____________________________________</p>
+            <p class="footer-text">Cajer@: {{ request.user.get_full_name|default:request.user.username }}</p>
+            <p class="footer-text">Fecha de Impresión: {{ now|date:"d-m-y H:i" }}</p>
+            <p style="font-style: italic;">"Instruye al niño en su camino, y aun cuando fuere viejo no se apartará de él" - Proverbios 22:6</p>
+        </div>
+    </div>
+    
+</body>
+</html>

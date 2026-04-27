@@ -1,0 +1,98 @@
+{% extends 'principal/base.html' %}
+
+{% block page_title %}
+Reporte de Notas | Filtros
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="display-5 text-gray">Generar Boletín de Notas</h1>
+            <p class="text-muted">Seleccione el Nivel y la Sección para generar el reporte de calificaciones.</p>
+        </div>
+    </div>
+    
+    <div class="card shadow-lg p-4 mt-4 bg-light">
+        <form id="filtroReporteForm">
+            <h5 class="mb-4 text-primary"><i class="fas fa-filter me-2"></i> Criterios del Reporte</h5>
+            <div class="row g-3 justify-content-center">
+                <div class="col-md-5">
+                    <label for="nivel_id" class="form-label fw-bold">Nivel/Grado:</label>
+                    <select class="form-select" id="nivel_id" name="nivel_id" required>
+                        <option value="">Seleccione un Nivel</option>
+                        {% for nivel in niveles %}
+                            <option value="{{ nivel.NivelID }}">{{ nivel.NombreNivel }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-5">
+                    <label for="seccion_id" class="form-label fw-bold">Sección:</label>
+                    <select class="form-select" id="seccion_id" name="seccion_id" required disabled>
+                        <option value="">Seleccione Nivel primero</option>
+                    </select>
+                </div>
+            </div>
+            <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-5">
+                <button type="submit" class="btn btn-warning btn-lg shadow-sm">
+                    <i class="fas fa-file-invoice me-2"></i> Ver Reporte de Notas
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const nivelSelect = document.getElementById('nivel_id');
+    const seccionSelect = document.getElementById('seccion_id');
+    const form = document.getElementById('filtroReporteForm');
+    
+    // REUTILIZAMOS LA URL DE LA API EXISTENTE
+    const seccionesApiUrl = "{% url 'Matricula:get_secciones_por_nivel' %}";
+
+    nivelSelect.addEventListener('change', async function() {
+        const nivelId = this.value;
+        seccionSelect.disabled = true;
+        seccionSelect.innerHTML = '<option value="">Cargando secciones...</option>';
+
+        if (!nivelId) {
+            seccionSelect.innerHTML = '<option value="">Seleccione Nivel primero</option>';
+            return;
+        }
+
+        try {
+            const response = await fetch(`${seccionesApiUrl}?nivel_id=${nivelId}`);
+            const data = await response.json();
+            
+            seccionSelect.innerHTML = '<option value="">Seleccione una Sección</option>';
+            data.forEach(seccion => {
+                const option = document.createElement('option');
+                option.value = seccion.id;
+                option.textContent = seccion.nombre;
+                seccionSelect.appendChild(option);
+            });
+            seccionSelect.disabled = false;
+        } catch (error) {
+            console.error("Error al cargar secciones:", error);
+            seccionSelect.innerHTML = '<option value="">Error al cargar</option>';
+        }
+    });
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const nivelId = nivelSelect.value;
+        const seccionId = seccionSelect.value;
+
+        if (nivelId && seccionId) {
+            const targetUrl = `/matricula/reportes/calificaciones/ver/${nivelId}/${seccionId}/`;
+            window.location.href = targetUrl;
+        } else {
+            alert('Por favor, seleccione un Nivel y una Sección.');
+        }
+    });
+});
+</script>
+{% endblock %}

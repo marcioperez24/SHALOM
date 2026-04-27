@@ -1,0 +1,149 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Nómina de Pago - {{ mes_nombre }} {{ anio }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 10mm;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 9pt;
+            background-color: white;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+        .header h1 { font-size: 18pt; margin: 0; color: #003366; }
+        .header h2 { font-size: 12pt; margin: 5px 0; }
+        
+        .table-nomina {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        .table-nomina th, .table-nomina td {
+            border: 1px solid #333;
+            padding: 4px 6px;
+        }
+        .table-nomina th {
+            background-color: #f2f2f2;
+            text-align: center;
+            font-weight: bold;
+        }
+        .text-end { text-align: right; }
+        .fw-bold { font-weight: bold; }
+        
+        .signatures {
+            margin-top: 50px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .sig-box {
+            width: 30%;
+            text-align: center;
+        }
+        .sig-line {
+            border-top: 1px solid #000;
+            margin-top: 40px;
+            padding-top: 5px;
+        }
+        
+        .no-print {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+        }
+        @media print {
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="no-print">
+        <button onclick="window.print()" class="btn btn-primary">Imprimir</button>
+        <button onclick="window.history.back()" class="btn btn-secondary">Volver</button>
+    </div>
+
+    <div class="header">
+        <h1>COLEGIO CRISTIANO SHALOM</h1>
+        <h2>NÓMINA GENERAL DE SALARIOS - {{ mes_nombre|upper }} {{ anio }}</h2>
+    </div>
+
+    <table class="table-nomina">
+        <thead>
+            <tr>
+                <th>No.</th>
+                <th>Nombre del Empleado</th>
+                <th>Cargo</th>
+                <th>Salario Base</th>
+                <th>Antigüedad</th>
+                <th>Extras</th>
+                <th>Total Devengado</th>
+                <th>INSS Lab.</th>
+                <th>IR DGI</th>
+                <th>Otras Ded.</th>
+                <th>Neto a Pagar</th>
+                <th style="width: 100px;">Firma</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for n in nominas %}
+            <tr>
+                <td class="text-center">{{ forloop.counter }}</td>
+                <td>{{ n.empleado.apellidos }}, {{ n.empleado.nombres }}</td>
+                <td>{{ n.empleado.cargo }}</td>
+                <td class="text-end">{{ n.salario_basico|floatformat:2 }}</td>
+                <td class="text-end">{{ n.monto_antiguedad|floatformat:2 }}</td>
+                <td class="text-end">{{ n.horas_extras_monto|floatformat:2 }}</td>
+                <td class="text-end fw-bold">{{ n.total_devengado|floatformat:2 }}</td>
+                <td class="text-end">{{ n.inss_laboral|floatformat:2 }}</td>
+                <td class="text-end">{{ n.ir_mensual|floatformat:2 }}</td>
+                <td class="text-end">{{ n.otras_deducciones|floatformat:2 }}</td>
+                <td class="text-end fw-bold">{{ n.total_a_pagar|floatformat:2 }}</td>
+                <td></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot class="fw-bold">
+            <tr>
+                <td colspan="3" class="text-end">TOTALES:</td>
+                <td class="text-end"></td>
+                <td class="text-end"></td>
+                <td class="text-end"></td>
+                <td class="text-end">{{ totales.total_devengado|floatformat:2 }}</td>
+                <td class="text-end">{{ totales.total_inss|floatformat:2 }}</td>
+                <td class="text-end">{{ totales.total_ir|floatformat:2 }}</td>
+                <td class="text-end"></td>
+                <td class="text-end">{{ totales.total_neto|floatformat:2 }}</td>
+                <td></td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <div class="signatures">
+        <div class="sig-box">
+            <div class="sig-line">ELABORADO POR</div>
+        </div>
+        <div class="sig-box">
+            <div class="sig-line">REVISADO POR</div>
+        </div>
+        <div class="sig-box">
+            <div class="sig-line">AUTORIZADO POR</div>
+        </div>
+    </div>
+
+    <div style="margin-top: 20px; font-size: 8pt; text-align: right;" class="text-muted">
+        Emitido el {{ hoy|date:"d/m/Y H:i" }}
+    </div>
+
+</body>
+</html>

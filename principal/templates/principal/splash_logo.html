@@ -1,0 +1,107 @@
+{% extends 'principal/base.html' %}
+{% load static %}
+
+{% block page_title %}
+Bienvenido al Sistema
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<style>
+    /* ---------------------------------------------------- */
+    /* DESPLAZAMIENTO HORIZONTAL FORZADO Y CENTRADO VERTICAL */
+    /* ---------------------------------------------------- */
+
+    /* CONTENEDOR PRINCIPAL: Asegura la altura y el centrado vertical */
+    .splash-container {
+        width: 100%; 
+        
+        /* Centrado Vertical: Usamos justify-content para centrar el contenido en la columna */
+        min-height: calc(100vh - 65px); /* Altura de la ventana menos la barra superior (aprox.) */
+        display: flex;
+        flex-direction: column;
+        justify-content: center; /* Centrado vertical (Lo pone a la mitad de la altura) */
+        align-items: center;     /* Asegura que el welcome-wrapper esté centrado horizontalmente */
+        
+        text-align: center;      /* Centrado del texto */
+        padding: 20px;
+        animation: fadeIn 1s ease-in-out;
+    }
+
+    /* Contenedor interno: Aplica el desplazamiento forzado */
+    .welcome-wrapper {
+        max-width: 800px;
+        width: 100%; 
+        
+        /* ========================================================== */
+        /* AJUSTE CLAVE: Desplazamiento Forzado a la Derecha */
+        /* Ajuste este valor (ej. 35%, 45%) para encontrar el centro visual */
+        margin: 0 0 0 40%; 
+        /* ========================================================== */
+        
+        /* Aseguramos que el texto interno esté alineado al centro del wrapper */
+        text-align: center;
+    }
+
+
+    /* TÍTULOS Y TEXTOS (Responsiveness) */
+    .welcome-text {
+        color: #3f51b5;
+        font-size: 2.5rem;    
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .instruction-text {
+        color: #6c757d;
+        font-size: 1.2rem;    
+        max-width: 650px;    
+        margin: 0 auto;      
+    }
+    
+    .text-muted {
+        margin-top: 2rem !important; 
+        font-size: 0.8rem;
+    }
+
+    /* Media Queries: ANULAMOS el desplazamiento en móvil */
+    @media (max-width: 768px) {
+        .welcome-wrapper {
+            margin: 0 auto; /* Centrado normal en móvil */
+            width: 90%;
+        }
+        .welcome-text {
+            font-size: 1.8rem;
+        }
+        .instruction-text {
+            font-size: 1rem;
+        }
+    }
+
+    /* Animación suave */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="splash-container">
+    <div class="welcome-wrapper">
+        <h1 class="welcome-text">
+            ¡Bienvenido(a) de Vuelta, {{ user.first_name|default:user.username }}!
+        </h1>
+
+        <p class="instruction-text">
+            <i class="fas fa-arrow-left me-2"></i> 
+            Su portal de trabajo está listo. Por favor, utilice el menú de navegación lateral para acceder a las aplicaciones y gestionar sus tareas.
+        </p>
+
+        <small class="text-muted mt-5">
+            Sistema de Colegio (SYSCO) v2.0
+        </small>
+    </div>
+</div>
+{% endblock %}

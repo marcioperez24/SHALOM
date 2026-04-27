@@ -1,0 +1,79 @@
+{% extends 'principal/base.html' %}
+
+{% block page_title %}Liquidación de Personal{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow border-0 mx-auto" style="max-width: 700px;">
+        <div class="card-header bg-danger text-white text-center py-3">
+            <h5 class="mb-0"><i class="fas fa-file-signature"></i> Procesar Liquidación y Baja</h5>
+        </div>
+        <div class="card-body p-4">
+            <h4 class="fw-bold text-center text-primary">{{ empleado.apellidos }}, {{ empleado.nombres }}</h4>
+            <div class="text-center mb-4">
+                <span class="badge bg-secondary text-white text-uppercase">Contratado el: {{ empleado.fecha_contratacion|date:"d M Y" }}</span>
+                <span class="badge bg-dark text-white text-uppercase">Cédula: {{ empleado.cedula }}</span>
+            </div>
+            
+            <form method="POST">
+                {% csrf_token %}
+                
+                <div class="row bg-light py-3 px-2 rounded mb-4 border">
+                    <h6 class="text-danger fw-bold border-bottom pb-2 mb-3"><i class="fas fa-gavel"></i> Parámetros de Baja</h6>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold small text-muted text-uppercase">Fecha de Salida Efectiva:</label>
+                        <input type="date" name="fecha_salida" class="form-control fw-bold" value="{{ hoy }}" required>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold small text-muted text-uppercase">Motivo de Salida (Art. 44/45):</label>
+                        <select name="motivo" class="form-select border-danger" required>
+                            <option value="RENUNCIA_PREAVISO">Renuncia con Preaviso (Conserva Indemnización)</option>
+                            <option value="DESPIDO_INJUSTIFICADO">Despido Injustificado (Conserva Indemnización)</option>
+                            <option value="MUTUO_ACUERDO">Mutuo Acuerdo</option>
+                            <option value="RENUNCIA_INMEDIATA">Renuncia Inmediata (PIERDE Indemnización)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-12 mb-2">
+                        <label class="form-label fw-bold small text-muted text-uppercase">Salario Base a Utilizar para Cálculo (C$):</label>
+                        <input type="number" step="0.01" name="salario_base_calculo" class="form-control" value="{{ salario_base }}" required>
+                        <small class="text-muted d-block mt-1">Este debe ser el salario más alto de los últimos 6 meses (Código del Trabajo).</small>
+                    </div>
+                </div>
+
+                <div class="row bg-primary bg-opacity-10 py-3 px-2 rounded mb-4 border border-primary border-opacity-50">
+                    <h6 class="text-primary fw-bold border-bottom border-primary border-opacity-25 pb-2 mb-3"><i class="fas fa-calculator"></i> Tiempos Acumulados (Verificar y Ajustar)</h6>
+                    
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label fw-bold small text-muted text-uppercase">Años de Antigüedad:</label>
+                        <input type="number" step="0.01" name="anos_antiguedad" class="form-control text-primary fw-bold" value="{{ anos_sugeridos }}" required>
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label fw-bold small text-muted text-uppercase">Meses Vacaciones Pendientes:</label>
+                        <input type="number" step="0.01" name="meses_vacaciones" class="form-control text-primary fw-bold" value="{{ anos_sugeridos|floatformat:2 }}" required>
+                        <small style="font-size: 11px;">Ej. 12 meses = 30 días</small>
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label fw-bold small text-muted text-uppercase">Meses p/ Aguinaldo:</label>
+                        <input type="number" step="0.01" name="meses_aguinaldo" class="form-control text-primary fw-bold" value="{{ meses_aguinaldo_sugeridos }}" required>
+                        <small style="font-size: 11px;">Mín 1 dic. pasado</small>
+                    </div>
+                </div>
+                
+                <div class="alert alert-warning mb-4">
+                    <i class="fas fa-exclamation-triangle"></i> <strong>Atención:</strong> Al procesar esta liquidación, el empleado pasará a estado <strong>INACTIVO</strong> y no podrá generársele más pagos regulares. Esta acción genera un Finiquito legal.
+                </div>
+                
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-danger btn-lg" onclick="return confirm('¿Está seguro de liquidar y dar de baja a este empleado?')">Firmar Despido y Generar Finiquito</button>
+                    <a href="{% url 'recursos_humanos:expediente_empleado' empleado.pk %}" class="btn btn-light">Cancelar y volver al expediente</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

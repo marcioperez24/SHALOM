@@ -1,0 +1,210 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hoja de Matrícula</title>
+    <style>
+        /* Estilos originales preservados */
+        body { font-family: 'Arial', sans-serif; margin: 20px; }
+        .hoja-matricula { 
+            border: 1px solid black; 
+            padding: 20px; 
+            position: relative; /* Necesario para posicionar la marca de agua */
+            overflow: hidden; 
+        }
+        .header { text-align: center; display: flex; align-items: center; justify-content: space-between; }
+        .header .logo { width: 80px; height: 80px; }
+        .header .foto-estudiante { width: 100px; height: 100px; border: 1px solid #ccc; }
+        .header .titulo { flex-grow: 1; text-align: center; }
+        .header h1, .header h3, .header h2 { margin: 5px; }
+        .section-title { background-color: #ac6c7c; padding: 5px; margin-top: 20px; border-bottom: 1px solid black; color: white; text-align: center; }
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table td { padding: 8px; border: 1px solid #ccc; }
+        .signature-box { margin-top: 50px; text-align: center; }
+        .signature-box p { margin: 0; }
+        .proverb { text-align: center; font-style: italic; margin-top: 20px; }
+
+        /* --- NUEVOS ESTILOS PARA MARCA DE AGUA E IMPRESIÓN --- */
+        
+        /* Estilo de la marca de agua */
+        .marca-agua {
+            position: absolute;
+            top: 55%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-30deg);
+            width: 70%;
+            opacity: 0.1; /* Transparencia */
+            z-index: -1; /* Va detrás del texto */
+            pointer-events: none;
+        }
+
+        /* Botón de impresión */
+        .contenedor-boton {
+            text-align: right;
+            margin-bottom: 10px;
+        }
+        .btn-imprimir {
+            padding: 10px 20px;
+            background-color: #ac6c7c;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 4px;
+        }
+
+        /* Configuración de impresión */
+        @media print {
+            .contenedor-boton { display: none; } /* Desaparece el botón */
+            body { margin: 0; padding: 0; }
+            .hoja-matricula { 
+                border: 1px solid black !important; /* Asegura que el borde se vea */
+                margin: 0;
+            }
+            /* Asegura que los colores de fondo se impriman */
+            .section-title { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+
+        @page {
+            size: auto;
+            margin: 5mm; /* Márgenes pequeños para que no se corte la derecha */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="contenedor-boton">
+        <button class="btn-imprimir" onclick="window.print()">Imprimir Hoja</button>
+    </div>
+
+    <div class="hoja-matricula">
+        <img src="{% static 'principal/img/Shalom.png' %}" class="marca-agua" alt="">
+
+        <div class="header">
+            <img src="{% static 'principal/img/Shalom.png' %}" alt="Logo Colegio" class="logo">
+            
+            <div class="titulo">
+                <h1>Colegio Cristiano "Jehová Shalom"</h1>
+                <h3>Dirección: Colegio Calazanz 2 Cuadras al sur 1/2 Cuadra al oeste.</h3>
+                <h2>HOJA DE MATRÍCULA AÑO {{ matricula.AñoMatricula }}</h2>
+            </div>
+            
+            {% if estudiante.Fotocarnet %}
+            <img src="{{ estudiante.Fotocarnet.url }}" alt="Foto del estudiante" class="foto-estudiante">
+            {% else %}
+            <div class="foto-estudiante" style="text-align: center; line-height: 100px;">Foto</div>
+            {% endif %}
+        </div>
+
+        <div class="section-title">Datos del Estudiante</div>
+        <table class="data-table">
+            <tr>
+                <td>Primer Nombre<br><b>{{ primer_nombre }}</b></td>
+                <td>Segundo Nombre<br><b>{{ segundo_nombre }}</b></td>
+                <td>Primer Apellido<br><b>{{ primer_apellido }}</b></td>
+                <td>Segundo Apellido<br><b>{{ segundo_apellido }}</b></td>
+                <td>Género<br><b>{{ estudiante.Genero }}</b></td>
+            </tr>
+            <tr>
+                <td>Fecha de Nacimiento<br><b>{{ estudiante.FechaNacimiento }}</b></td>
+                <td colspan="2">Dirección Domiciliar<br><b>{{ estudiante.Direccion }}</b></td>
+                <td>Edad del Estudiante<br><b>{{ estudiante.Edad }} Años</b></td>
+                <td>Centro de Procedencia<br><b>{{ estudiante.ColegioProcedencia }}</b></td>
+            </tr>
+        </table>
+        
+        <div class="section-title">Datos de la Matrícula</div>
+        <table class="data-table">
+            <tr>
+                <td>Fecha de Matrícula<br><b>{{ matricula.FechaMatricula }}</b></td>
+                <td>Grado/Nivel a Matricular<br><b>{{ matricula.NivelID.NombreNivel }}</b></td>
+                <td>Sección de la Matrícula<br><b>{{ matricula.SeccionID.NombreSeccion }}</b></td>
+                <td>Código del Estudiante<br><b>{{ estudiante.Codigo_MINED }}</b></td>
+                <td>Tipo de Matrícula<br><b>{{ matricula.TipoMatriculaID.Descripcion }}</b></td>
+            </tr>
+        </table>
+
+        <div class="section-title">Datos Familiares</div>
+        <table class="data-table">
+            <tr>
+                <td>Nombre del Padre<br><b>{{ estudiante.NombrePadre }}</b></td>
+                <td>N° Cédula<br><b>{{ estudiante.CedulaPadre }}</b></td>
+                <td>N° Teléfono<br><b>{{ estudiante.TelefonoPadre }}</b></td>
+                <td>Ocupación del Padre<br><b>{{ estudiante.OcupacionPadre }}</b></td>
+            </tr>
+            <tr>
+                <td>Nombre de la Madre<br><b>{{ estudiante.NombreMadre }}</b></td>
+                <td>N° Cédula<br><b>{{ estudiante.CedulaMadre }}</b></td>
+                <td>N° Teléfono<br><b>{{ estudiante.TelefonoMadre }}</b></td>
+                <td>Ocupación de la Madre<br><b>{{ estudiante.OcupacionMadre }}</b></td>
+            </tr>
+            <tr>
+                <td>Nombre del Tutor<br><b>{% if estudiante.NombreTutor %}{{ estudiante.NombreTutor }}{% else %} [NULL] {% endif %}</b></td>
+                <td>N° Cédula<br><b>{{ estudiante.CedulaTutor }}</b></td>
+                <td>N° Teléfono<br><b>{{ estudiante.TelefonoTutor }}</b></td>
+                <td>Ocupación del Tutor<br><b>{{ estudiante.OcupacionTutor }}</b></td>
+            </tr>
+        </table>
+
+        <div class="section-title">Nombre del Responsable de Escuela de Padres<br><b>{{ estudiante.ResponsableEP }}</b></div>
+
+        <div class="section-title">Documentos Entregados</div>
+        <table class="data-table">
+            <tr>
+                <td>Partida de Nacimiento</td>
+                <td><input type="checkbox"></td>
+                <td>Copia de Cédulas</td>
+                <td><input type="checkbox"></td>
+                <td>Copia de Tarjeta de Vacuna</td>
+                <td><input type="checkbox"></td>
+            </tr>
+            <tr>
+                <td>Certificado de Notas</td>
+                <td><input type="checkbox"></td>
+                <td>Boletín Escolar</td>
+                <td><input type="checkbox"></td>
+                <td>Hoja de Traslado</td>
+                <td><input type="checkbox"></td>
+            </tr>
+            <tr>
+                <td>Fotos</td>
+                <td><input type="checkbox"></td>
+                <td colspan="3">Copia de Diploma</td>
+                <td><input type="checkbox"></td>
+            </tr>
+        </table>
+
+        <div class="section-title">Observaciones Médicas Certificadas</div>
+        <table class="data-table">
+            <tr>
+                <td>&nbsp;</td>
+            </tr>
+            <tr>
+                <td>&nbsp;</td>
+            </tr>
+        </table>
+
+        <div class="section-title">Valoración Psicológica o Condición Especial Certificada</div>
+        <table class="data-table">
+            <tr>
+                <td>&nbsp;</td>
+            </tr>
+            <tr>
+                <td>&nbsp;</td>
+            </tr>
+        </table>
+
+        <div class="signature-box">
+            <p>____________________________</p>
+            <p>Firma del Responsable</p>
+        </div>
+
+        <div class="proverb">
+            <p>"Instruye al niño en su camino, y aun cuando fuere viejo no se apartará de él"</p>
+            <p>Proverbios 22:6</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,161 @@
+{% extends 'principal/base.html' %} {% load static %}
+
+{% block title %}Portal Docentes - Colegio Shalom{% endblock %}
+
+{% block page_title %}Portal de Docentes{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-4">
+   
+    <div class="mb-4">
+        <h2 class="text-2xl font-bold text-gray-800">
+            <i class="fas fa-chalkboard-teacher me-2 text-primary"></i>
+            Panel de Control y Gestión Docente
+        </h2>
+        <p class="text-gray-600 mt-1">
+            Bienvenido al portal del profesorado. Desde aquí puedes gestionar tus cargas académicas y acceder a herramientas futuras.
+        </p>
+    </div>
+
+    <div class="row g-4">
+
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-0 overflow-hidden">
+                <div class="bg-success h-2"></div>
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-success bg-opacity-10 p-3 rounded-circle me-3">
+                             <i class="fas fa-user-check fa-2x text-success"></i>
+                        </div>
+                        <h5 class="card-title text-xl font-semibold mb-0">Acceso a mis Clases</h5>
+                    </div>
+                    <p class="card-text text-gray-600 mb-4">
+                        Ingresa con tu cédula para ver tus materias asignadas, gestionar asistencias y calificaciones.
+                    </p>
+                    {% if perms.docentes.ver_panel_docentes %}
+                    <a href="{% url 'acceso_docente' %}" class="btn btn-outline-success w-100 fw-bold">
+                        <i class="fas fa-sign-in-alt me-2"></i> Iniciar Acceso
+                    </a>
+                    {% else %}
+                    <button class="btn btn-outline-primary mt-auto" disabled>Permiso Requerido</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-0 overflow-hidden">
+                <div class="bg-secondary h-2"></div> <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-secondary bg-opacity-10 p-3 rounded-circle me-3">
+                            <i class="fas fa-folder-open fa-2x text-secondary"></i>
+                        </div>
+                        <h5 class="card-title text-xl font-semibold mb-0">Mis Documentos</h5>
+                    </div>
+                    <p class="card-text text-gray-600 mb-4">
+                        Gestiona tu hoja de vida, contratos y visualiza las Actas de Notas que has archivado digitalmente.
+                    </p>
+                    {% if perms.docentes.ver_docdocentes %}
+                    <a href="{% url 'validar_acceso_documentos' %}" class="btn btn-outline-secondary w-100 fw-bold text-dark">
+                        <i class="fas fa-archive me-2"></i> Ver Archivos
+                    </a>
+                    {% else %}
+                    <button class="btn btn-outline-primary mt-auto" disabled>Permiso Requerido</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+         <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-0 overflow-hidden bg-light">
+                 <div class="bg-info h-2"></div>
+                <div class="card-body p-4 opacity-75">
+                     <div class="d-flex align-items-center mb-3">
+                        <div class="bg-info bg-opacity-10 p-3 rounded-circle me-3">
+                             <i class="fas fa-calendar-alt fa-2x text-info"></i>
+                        </div>
+                        <h5 class="card-title text-xl font-semibold mb-0">Mi Horario (Próximamente)</h5>
+                    </div>
+                    <p class="card-text text-gray-600 mb-4">
+                        Visualización rápida de tu horario de clases y aulas asignadas para el periodo actual.
+                    </p>
+                    <button class="btn btn-outline-info w-100 fw-bold" disabled>
+                        <i class="fas fa-clock me-2"></i> En Desarrollo
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-0 overflow-hidden">
+                <div class="bg-primary h-2"></div>
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-primary bg-opacity-10 p-3 rounded-circle me-3">
+                             <i class="fas fa-user-plus fa-2x text-primary"></i>
+                        </div>
+                        <h5 class="card-title text-xl font-semibold mb-0">Registrar Docente</h5>
+                    </div>
+                    <p class="card-text text-gray-600 mb-4">
+                        Da de alta a nuevos profesores en el sistema, ingresando sus datos personales y de contacto.
+                    </p>
+                    {% if perms.docentes.crear_docentes %}
+                    <a href="{% url 'registrar_docente' %}" class="btn btn-outline-primary w-100 fw-bold">
+                        <i class="fas fa-plus-circle me-2"></i> Nuevo Registro
+                    </a>
+                    {% else %}
+                    <button class="btn btn-outline-primary mt-auto" disabled>Permiso Requerido</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-0 overflow-hidden">
+                 <div class="bg-warning h-2"></div>
+                <div class="card-body p-4">
+                     <div class="d-flex align-items-center mb-3">
+                        <div class="bg-warning bg-opacity-10 p-3 rounded-circle me-3">
+                             <i class="fas fa-list-ul fa-2x text-warning"></i>
+                        </div>
+                        <h5 class="card-title text-xl font-semibold mb-0">Directorio de Docentes</h5>
+                    </div>
+                    <p class="card-text text-gray-600 mb-4">
+                        Consulta el listado completo, busca por nombre o cédula y edita la información del personal.
+                    </p>
+                    {% if perms.docentes.ver_lista_docentes %}
+                    <a href="{% url 'lista_docentes' %}" class="btn btn-outline-warning w-100 fw-bold text-dark">
+                        <i class="fas fa-search me-2"></i> Buscar y Editar
+                    </a>
+                    {% else %}
+                    <button class="btn btn-outline-primary mt-auto" disabled>Permiso Requerido</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-0 overflow-hidden">
+                 <div class="bg-info h-2"></div>
+                <div class="card-body p-4">
+                     <div class="d-flex align-items-center mb-3">
+                        <div class="bg-info bg-opacity-10 p-3 rounded-circle me-3">
+                             <i class="fas fa-tasks fa-2x text-info"></i>
+                        </div>
+                        <h5 class="card-title text-xl font-semibold mb-0">Cargas Académicas</h5>
+                    </div>
+                    <p class="card-text text-gray-600 mb-4">
+                        Asigna qué materias y en qué secciones impartirá clases cada docente durante el año lectivo.
+                    </p>
+                    {% if perms.docentes.ver_cargaacademica %}
+                    <a href="{% url 'lista_cargas' %}" class="btn btn-outline-info w-100 fw-bold text-dark">
+                        <i class="fas fa-project-diagram me-2"></i> Gestionar Asignaciones
+                    </a>
+                    {% else %}
+                    <button class="btn btn-outline-primary mt-auto" disabled>Permiso Requerido</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+    </div> </div>
+{% endblock %}

@@ -1,0 +1,107 @@
+{% extends 'principal/base.html' %}
+
+{% block page_title %}Expediente Digital{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="text-primary fw-bold"><i class="fas fa-folder-open"></i> Expediente Digital</h3>
+        <div>
+            <a href="{% url 'recursos_humanos:imprimir_contrato' empleado.pk %}" class="btn btn-dark btn-sm">
+                <i class="fas fa-file-contract"></i> Generar Contrato Físico
+            </a>
+            {% if empleado.activo %}
+            <a href="{% url 'recursos_humanos:configurar_horario' empleado.pk %}" class="btn btn-outline-primary btn-sm mx-1">
+                <i class="fas fa-clock"></i> Configurar Horario
+            </a>
+            <a href="{% url 'recursos_humanos:liquidar_empleado' empleado.pk %}" class="btn btn-danger btn-sm mx-1">
+                <i class="fas fa-gavel"></i> Liquidar y Dar de Baja
+            </a>
+            {% else %}
+            <a href="{% url 'recursos_humanos:imprimir_finiquito' empleado.pk %}" class="btn btn-warning btn-sm mx-1">
+                <i class="fas fa-print"></i> Imprimir Finiquito
+            </a>
+            {% endif %}
+            <a href="{% url 'recursos_humanos:lista_empleados' %}" class="btn btn-secondary btn-sm">Volver</a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body">
+                    <h5 class="border-bottom pb-2 text-secondary">Información del Docente</h5>
+                    <div class="row mt-3">
+                        <div class="col-6 mb-2"><strong>Nombre Completo:</strong><br>{{ empleado.nombres }} {{ empleado.apellidos }}</div>
+                        <div class="col-6 mb-2"><strong>Cédula:</strong><br>{{ empleado.cedula }}</div>
+                        <div class="col-6 mb-2"><strong>Cargo:</strong><br>{{ empleado.cargo }}</div>
+                        <div class="col-6 mb-2"><strong>Teléfono:</strong><br>{{ empleado.telefono }}</div>
+                        <div class="col-12 mb-2"><strong>Dirección:</strong><br>{{ empleado.direccion }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body">
+                    <h5 class="border-bottom pb-2 text-secondary">Configuración Salarial (Nicaragua)</h5>
+                    {% if empleado.contrato %}
+                    <div class="row mt-3">
+                        <div class="col-md-4 mb-2">
+                            <strong>Salario Base:</strong><br>
+                            <span class="text-success fw-bold">C$ {{ empleado.contrato.salario_base|floatformat:2 }}</span>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <strong>Antigüedad:</strong><br>
+                            {{ empleado.contrato.porcentaje_antiguedad }}%
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <strong>Estado:</strong><br>
+                            {% if empleado.activo %}
+                                <span class="badge bg-success">Activo</span>
+                            {% else %}
+                                <span class="badge bg-danger">Inactivo</span>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-12 mt-3">
+                            <strong>Deducciones Aplicables:</strong><br>
+                            {% if empleado.contrato.paga_inss %}
+                                <span class="badge bg-info text-dark">INSS Laboral (7%)</span>
+                            {% endif %}
+                            {% if empleado.contrato.paga_ir %}
+                                <span class="badge bg-warning text-dark">Retención IR (DGI)</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% else %}
+                    <p class="text-muted mt-2 small">Este empleado no tiene un contrato configurado.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white">Documentos Cargados</div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Currículum Vitae
+                        {% if empleado.curriculum %}
+                            <a href="{{ empleado.curriculum.url }}" target="_blank" class="btn btn-sm btn-success"><i class="fas fa-download"></i></a>
+                        {% else %}
+                            <span class="badge bg-light text-muted small">No cargado</span>
+                        {% endif %}
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Diplomas / Títulos
+                        {% if empleado.diplomas %}
+                            <a href="{{ empleado.diplomas.url }}" target="_blank" class="btn btn-sm btn-success"><i class="fas fa-download"></i></a>
+                        {% else %}
+                            <span class="badge bg-light text-muted small">No cargado</span>
+                        {% endif %}
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,135 @@
+{% extends 'principal/base.html' %}
+{% block page_title %}Asignación de Carga Academica{% endblock %}
+
+{% block title %}Asignar Carga Académica{% endblock %}
+
+{% block content %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-primary text-white py-3">
+                    <h4 class="mb-0"><i class="fas fa-chalkboard-teacher me-2"></i>Asignar Carga Múltiple</h4>
+                </div>
+                
+                <div class="card-body p-4">
+                    <form method="POST" id="cargaForm">
+                        {% csrf_token %}
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">1. Seleccionar Docente</label>
+                            {{ form.docente }}
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-8">
+                                <label class="form-label fw-bold">2. Nivel Académico</label>
+                                {{ form.nivel }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Año Lectivo</label>
+                                {{ form.anio_lectivo }}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">3. Sección / Grupo</label>
+                            {{ form.seccion }}
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-primary">4. Materias / Asignaturas</label>
+                            {{ form.materias }}
+                            <div class="form-text text-muted">Escribe para buscar o selecciona de la lista.</div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <a href="{% url 'lista_cargas' %}" class="btn btn-light me-md-2 border">Cancelar</a>
+                            <button type="submit" class="btn btn-primary px-5 fw-bold">
+                                <i class="fas fa-save me-2"></i> Guardar Todo
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+        // 1. INICIALIZAR SELECT2 EN DOCENTE
+        $('#id_docente').select2({
+            theme: "bootstrap-5",
+            width: '100%'
+        });
+
+        // 2. INICIALIZAR SELECT2 EN MATERIAS (Esto arregla la caja fea)
+        $('#id_materias').select2({
+            theme: "bootstrap-5",
+            placeholder: "--- Selecciona primero el Nivel ---",
+            allowClear: true,
+            width: '100%',
+            closeOnSelect: false // Permite seleccionar varias sin que se cierre
+        });
+
+        // 3. LÓGICA DE FILTRADO
+        $('#id_nivel').change(function() {
+            var nivelId = $(this).val();
+            var url = "{% url 'ajax_cargar_opciones' %}";
+
+            // PASO CLAVE: Limpiar visualmente ANTES de pedir datos
+            $('#id_materias').empty(); 
+            $('#id_seccion').empty().append('<option value="">Cargando...</option>');
+
+            if (nivelId) {
+                $.ajax({
+                    url: url,
+                    data: { 'nivel_id': nivelId },
+                    success: function(data) {
+                        console.log("Datos recibidos:", data);
+
+                        // A. LLENAR MATERIAS
+                        if (data.materias.length > 0) {
+                            $.each(data.materias, function(key, value) {
+                                var newOption = new Option(value.NombreMateria, value.MateriaID, false, false);
+                                $('#id_materias').append(newOption);
+                            });
+                        } else {
+                            console.warn("No hay materias para este nivel");
+                        }
+                        // Actualizar el texto del placeholder
+                        $('#id_materias').trigger('change'); 
+
+                        // B. LLENAR SECCIONES
+                        $('#id_seccion').empty().append('<option value="">--- Seleccionar Sección ---</option>');
+                        $.each(data.secciones, function(key, value) {
+                            $('#id_seccion').append('<option value="' + value.SeccionID + '">' + value.NombreSeccion + '</option>');
+                        });
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Error AJAX:", error);
+                        alert("Error al cargar datos. Revisa la consola.");
+                    }
+                });
+            } else {
+                // Si no hay nivel, limpiar todo
+                $('#id_seccion').empty().append('<option value="">---------</option>');
+                $('#id_materias').empty();
+            }
+        });
+
+        // 4. DISPARAR EL CAMBIO AL INICIO
+        // Si ya hay un nivel seleccionado (ej: recarga por error), cargar sus datos
+        if ($('#id_nivel').val()) {
+            $('#id_nivel').trigger('change');
+        }
+    });
+</script>
+{% endblock %}

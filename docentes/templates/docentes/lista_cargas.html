@@ -1,0 +1,225 @@
+{% extends 'principal/base.html' %}
+{% block page_title %}Cargas Académicas{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="text-gray-800 fw-bold mb-1">
+                <i class="fas fa-chalkboard-teacher me-2 text-primary"></i>Carga Horaria por Docente
+            </h2>
+            <p class="text-muted mb-0">Gestión de asignaciones académicas - Historial Dinámico</p>
+        </div>
+        <a href="{% url 'asignar_carga' %}" class="btn btn-success shadow-sm">
+            <i class="fas fa-plus-circle me-2"></i> Nueva Asignación
+        </a>
+    </div>
+
+    <form method="GET" class="mb-4">
+        <div class="input-group shadow-sm">
+            <input type="text" name="q" class="form-control border-0" placeholder="Buscar docente o materia..." value="{{ query|default:'' }}">
+            <button class="btn btn-primary" type="submit"><i class="fas fa-search"></i></button>
+        </div>
+    </form>
+
+    <div class="row">
+        {% for docente in page_obj %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 shadow-sm border-0 border-top border-primary border-4" id="card-{{ docente.id }}">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="flex-shrink-0">
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                                <i class="fas fa-user-tie"></i>
+                            </div>
+                        </div>
+                        <div class="ms-3">
+                            <h6 class="mb-0 fw-bold text-dark text-uppercase">{{ docente.apellidos }}, {{ docente.nombres }}</h6>
+                            <small class="text-muted">Cédula: {{ docente.cedula }}</small>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="small fw-bold text-muted mb-1 d-block text-uppercase">Seleccionar Ciclo:</label>
+                        <select class="form-select form-select-sm border-primary" onchange="filterByYear('{{ docente.id }}', this.value, this)">
+                            {% regroup docente.cargas_academicas.all|dictsort:"anio_lectivo" by anio_lectivo as year_list %}
+                            {% for year in year_list reversed %}
+                                <option value="{{ year.grouper }}" {% if forloop.first %}selected{% endif %}>
+                                    Ciclo Académico {{ year.grouper }}
+                                </option>
+                            {% empty %}
+                                <option value="{{ anio_actual }}">Ciclo Académico {{ anio_actual }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="bg-light p-3 rounded mb-3 text-center border">
+                        <span class="text-muted small d-block mb-1 fw-bold">ASIGNATURAS</span>
+                        <h4 class="mb-0 fw-bold text-primary" id="count-{{ docente.id }}">0</h4>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalDocente{{ docente.id }}">
+                            <i class="fas fa-list-ul me-2"></i>Ver Detalle de Carga
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="card-footer bg-transparent border-0 d-flex justify-content-between align-items-center pb-3">
+                    <span class="badge bg-light text-dark border small">
+                        <i class="far fa-calendar-alt me-1"></i> Año: <span class="txt-year">---</span>
+                    </span>
+                    <a href="{% url 'imprimir_carga_docente' docente.id %}" 
+                       id="btn-print-{{ docente.id }}"
+                       target="_blank" 
+                       class="btn btn-sm btn-link text-decoration-none p-0">
+                        <i class="fas fa-print me-1"></i>Reporte
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="modalDocente{{ docente.id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content border-0 shadow-lg">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title">
+                            <i class="fas fa-calendar-check me-2"></i>Cargas Ciclo <span class="modal-year-title"></span>
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="ps-4">#</th>
+                                        <th>Materia</th>
+                                        <th>Nivel / Sección</th>
+                                        <th class="text-end pe-4">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="carga-table-body">
+                                    {% for carga in docente.cargas_academicas.all %}
+                                    <tr class="carga-row" data-year="{{ carga.anio_lectivo }}">
+                                        <td class="ps-4 fw-bold text-muted row-index"></td>
+                                        <td class="fw-bold text-dark">{{ carga.materia.NombreMateria }}</td>
+                                        <td>{{ carga.nivel.NombreNivel }} - {{ carga.seccion.NombreSeccion }}</td>
+                                        <td class="text-end pe-4">
+                                            <a href="{% url 'eliminar_carga' carga.id %}" class="btn btn-sm text-danger" onclick="return confirm('¿Eliminar esta asignación?');">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                    <tr class="no-data-row d-none">
+                                        <td colspan="4" class="text-center py-4 text-muted">No hay materias registradas para este ciclo.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <i class="fas fa-search fa-3x text-muted mb-3"></i>
+            <p class="text-muted">No se encontraron docentes con los criterios de búsqueda.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if page_obj.has_other_pages %}
+    <nav aria-label="Navegación de páginas" class="mt-4">
+        <ul class="pagination justify-content-center shadow-sm">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">
+                        <i class="fas fa-chevron-left me-1"></i> Anterior
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled"><span class="page-link">Anterior</span></li>
+            {% endif %}
+
+            {% for i in page_obj.paginator.page_range %}
+                {% if page_obj.number == i %}
+                    <li class="page-item active"><span class="page-link">{{ i }}</span></li>
+                {% else %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ i }}{% if query %}&q={{ query }}{% endif %}">{{ i }}</a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}">
+                        Siguiente <i class="fas fa-chevron-right ms-1"></i>
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled"><span class="page-link">Siguiente</span></li>
+            {% endif %}
+        </ul>
+    </nav>
+    <div class="text-center text-muted small mb-5">
+        Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function filterByYear(docenteId, year, element) {
+    const card = document.getElementById(`card-${docenteId}`);
+    const modal = document.getElementById(`modalDocente${docenteId}`);
+    
+    card.querySelector('.txt-year').innerText = year;
+    modal.querySelector('.modal-year-title').innerText = year;
+
+    const rows = modal.querySelectorAll('.carga-row');
+    let count = 0;
+
+    rows.forEach(row => {
+        if (row.getAttribute('data-year') == year) {
+            row.style.display = '';
+            count++;
+            row.querySelector('.row-index').innerText = count;
+        } else {
+            row.style.display = 'none';
+        }
+    });
+
+    document.getElementById(`count-${docenteId}`).innerText = count;
+
+    const noData = modal.querySelector('.no-data-row');
+    if (count === 0) noData.classList.remove('d-none');
+    else noData.classList.add('d-none');
+
+    // Actualizar enlace de reporte
+    const btnPrint = document.getElementById(`btn-print-${docenteId}`);
+    if (btnPrint) {
+        let currentHref = btnPrint.getAttribute('href').split('?')[0];
+        btnPrint.setAttribute('href', `${currentHref}?anio=${year}`);
+    }
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    document.querySelectorAll('.card').forEach(card => {
+        const docenteId = card.id.replace('card-', '');
+        const select = card.querySelector('select');
+        if (select && select.value) {
+            filterByYear(docenteId, select.value, select);
+        }
+    });
+});
+</script>
+
+<style>
+    .card { transition: all 0.3s ease; border-radius: 12px; }
+    .card:hover { transform: translateY(-5px); }
+    .pagination .page-link { color: #0d6efd; border-radius: 5px; margin: 0 2px; }
+    .pagination .page-item.active .page-link { background-color: #0d6efd; border-color: #0d6efd; }
+</style>
+{% endblock %}

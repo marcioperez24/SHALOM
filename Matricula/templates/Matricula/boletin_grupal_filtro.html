@@ -1,0 +1,287 @@
+{% extends 'principal/base.html' %}
+{% load static %}
+
+{% block page_title %}Impresión Grupal de Boletines{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+    .student-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+        cursor: pointer;
+    }
+    .student-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
+    }
+    .status-badge {
+        font-size: 0.75rem;
+    }
+    .btn-breadcrumb .btn { border-radius: 0; }
+    .btn-breadcrumb .btn:first-child { border-top-left-radius: .25rem; border-bottom-left-radius: .25rem; }
+    .btn-breadcrumb .btn:last-child { border-top-right-radius: .25rem; border-bottom-right-radius: .25rem; }
+    
+    @media (max-width: 768px) {
+        .filter-section { margin-bottom: 2rem; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="text-secondary fw-bold">Impresión Grupal de Boletines</h2>
+            <nav aria-label="breadcrumb">
+                <div class="btn-group btn-group-sm btn-breadcrumb">
+                    <a href="{% url 'Matricula:Matricula_home' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-home me-1"></i> Panel
+                    </a>
+                    <button class="btn btn-secondary active" disabled>
+                        <i class="fas fa-users me-1"></i> Impresión Grupal
+                    </button>
+                </div>
+            </nav>
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="row">
+        <!-- Panel de Filtros -->
+        <div class="col-lg-4 filter-section">
+            <div class="card shadow border-0 mb-4">
+                <div class="card-header bg-primary text-white py-3">
+                    <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Criterios de Selección</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form id="filterForm" method="GET">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Grado / Nivel</label>
+                            <select name="nivel" id="id_nivel" class="form-select form-select-lg" required>
+                                <option value="">Seleccione...</option>
+                                {% for n in niveles %}
+                                    <option value="{{ n.NivelID }}" {% if nivel_id == n.NivelID %}selected{% endif %}>{{ n.NombreNivel }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Sección</label>
+                            <select name="seccion" id="id_seccion" class="form-select form-select-lg" required>
+                                <option value="">Primero elija un nivel...</option>
+                            </select>
+                        </div>
+
+                        <hr>
+                        <h6 class="fw-bold mb-3">Periodos a Incluir</h6>
+                        <div class="bg-light p-3 rounded border mb-4">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input period-check" type="checkbox" name="c1" id="c1" {% if request.GET.c1 == 'on' %}checked{% endif %}>
+                                <label class="form-check-label" for="c1">I Corte</label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input period-check" type="checkbox" name="c2" id="c2" {% if request.GET.c2 == 'on' %}checked{% endif %}>
+                                <label class="form-check-label" for="c2">II Corte</label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input period-check" type="checkbox" name="s1" id="s1" {% if request.GET.s1 == 'on' %}checked{% endif %}>
+                                <label class="form-check-label fw-bold" for="s1">I Semestre</label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input period-check" type="checkbox" name="c3" id="c3" {% if request.GET.c3 == 'on' %}checked{% endif %}>
+                                <label class="form-check-label" for="c3">III Corte</label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input period-check" type="checkbox" name="c4" id="c4" {% if request.GET.c4 == 'on' %}checked{% endif %}>
+                                <label class="form-check-label" for="c4">IV Corte</label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input period-check" type="checkbox" name="s2" id="s2" {% if request.GET.s2 == 'on' %}checked{% endif %}>
+                                <label class="form-check-label fw-bold" for="s2">II Semestre</label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input period-check" type="checkbox" name="nf" id="nf" {% if request.GET.nf == 'on' %}checked{% endif %}>
+                                <label class="form-check-label fw-bold text-success" for="nf">Nota Final</label>
+                            </div>
+                            <div class="form-check mt-3 border-top pt-2">
+                                <input class="form-check-input" type="checkbox" name="all" id="all" {% if request.GET.all == 'on' %}checked{% endif %}>
+                                <label class="form-check-label fw-bold text-danger" for="all">Mostrar Todo</label>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Estilo de Notas</label>
+                            <select name="tipo_nota" class="form-select">
+                                <option value="ambas" {% if tipo_nota_selected == 'ambas' %}selected{% endif %}>Numérica y Cualitativa</option>
+                                <option value="cuantitativa" {% if tipo_nota_selected == 'cuantitativa' %}selected{% endif %}>Solo Numérica</option>
+                                <option value="cualitativa" {% if tipo_nota_selected == 'cualitativa' %}selected{% endif %}>Solo Cualitativa</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 btn-lg shadow">
+                            <i class="fas fa-sync-alt me-2"></i>Cargar Listado
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Listado de Estudiantes -->
+        <div class="col-lg-8">
+            <form id="printForm" method="POST" action="{% url 'Matricula:imprimir_boletin_grupal' %}">
+                {% csrf_token %}
+                <!-- Campos ocultos para mantener los filtros en el post -->
+                <div id="hiddenParams"></div>
+
+                <div class="card shadow border-0 h-100">
+                    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 text-primary fw-bold">
+                            <i class="fas fa-graduation-cap me-2"></i>Alumnos Encontrados
+                        </h5>
+                        {% if estudiantes_lista %}
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="selectAll" checked>
+                            <label class="form-check-label fw-bold" for="selectAll">Marcar Todos</label>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="card-body p-0">
+                        {% if estudiantes_lista %}
+                        <div class="table-responsive" style="max-height: 600px;">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th width="50" class="text-center">#</th>
+                                        <th>Nombre del Estudiante</th>
+                                        <th class="text-center">Estado de Notas</th>
+                                        <th width="40"></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in estudiantes_lista %}
+                                    <tr class="student-row">
+                                        <td class="text-center">{{ forloop.counter }}</td>
+                                        <td>
+                                            <div class="fw-bold text-dark">{{ item.est.NombreCompleto }}</div>
+                                            <small class="text-muted">ID: {{ item.est.EstudianteID }}</small>
+                                        </td>
+                                        <td class="text-center">
+                                            {% if item.completo %}
+                                                <span class="badge bg-success-soft text-success border border-success px-3 rounded-pill status-badge">
+                                                    <i class="fas fa-check-circle me-1"></i> Completo ({{ item.reales }}/{{ item.esperadas }})
+                                                </span>
+                                            {% else %}
+                                                <span class="badge {% if item.reales == 0 %}bg-danger-soft text-danger border-danger{% else %}bg-warning-soft text-warning border-warning{% endif %} border px-3 rounded-pill status-badge">
+                                                    <i class="fas fa-exclamation-triangle me-1"></i> Incompleto ({{ item.reales }}/{{ item.esperadas }})
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="form-check">
+                                                <input class="form-check-input student-checkbox" type="checkbox" 
+                                                       name="estudiante_ids" value="{{ item.est.EstudianteID }}" checked>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="p-4 bg-light border-top text-center">
+                            <button type="submit" class="btn btn-success btn-xl px-5 shadow-lg fw-bold">
+                                <i class="fas fa-print me-2"></i>IMPRIMIR BOLETINES SELECCIONADOS
+                            </button>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-5">
+                            <img src="{% static 'img/search_placeholder.svg' %}" alt="" style="width: 150px; opacity: 0.3;" class="mb-3">
+                            <h5 class="text-muted">No se han seleccionado filtros o no hay estudiantes en esta sección.</h5>
+                            <p class="small text-muted">Use el panel de la izquierda para comenzar.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script>
+$(document).ready(function() {
+    const nivelSelect = $('#id_nivel');
+    const seccionSelect = $('#id_seccion');
+    const selectedSeccion = "{{ seccion_id|default:'' }}";
+
+    // --- Carga dinámica de secciones ---
+    function cargarSecciones(nivelId, targetSelect) {
+        if (!nivelId) {
+            targetSelect.html('<option value="">Primero elija un nivel...</option>');
+            return;
+        }
+        $.ajax({
+            url: "{% url 'Matricula:get_secciones_por_nivel' %}",
+            data: {'nivel_id': nivelId},
+            success: function (data) {
+                let options = '<option value="">Seleccione Sección...</option>';
+                data.forEach(function (sec) {
+                    let sel = (sec.id == selectedSeccion) ? 'selected' : '';
+                    options += `<option value="${sec.id}" ${sel}>${sec.nombre}</option>`;
+                });
+                targetSelect.html(options);
+            }
+        });
+    }
+
+    if (nivelSelect.val()) {
+        cargarSecciones(nivelSelect.val(), seccionSelect);
+    }
+
+    nivelSelect.change(function() {
+        cargarSecciones($(this).val(), seccionSelect);
+    });
+
+    // --- Selección masiva ---
+    $('#selectAll').change(function() {
+        $('.student-checkbox').prop('checked', $(this).is(':checked'));
+    });
+
+    // --- Pasar parámetros del filtro al form de impresión ---
+    $('#printForm').submit(function() {
+        const hParams = $('#hiddenParams');
+        hParams.empty();
+        $('#filterForm').serializeArray().forEach(function(item) {
+            if (item.name !== 'nivel' && item.name !== 'seccion') {
+                hParams.append(`<input type="hidden" name="${item.name}" value="${item.value}">`);
+            }
+        });
+        return true;
+    });
+
+    // Lógica de periodos (clonada del individual)
+    const periodCheckboxes = $(".period-check");
+    const checkAll = $("#all");
+
+    checkAll.on('change', function() {
+        if ($(this).is(':checked')) {
+            periodCheckboxes.prop('checked', false).prop('disabled', true);
+        } else {
+            periodCheckboxes.prop('disabled', false);
+        }
+    });
+
+    if (checkAll.is(':checked')) {
+        periodCheckboxes.prop('disabled', true);
+    }
+});
+</script>
+{% endblock %}

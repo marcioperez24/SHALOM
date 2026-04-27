@@ -1,0 +1,204 @@
+{% extends 'principal/base.html' %}
+{% load static %}
+
+{% block page_title %}
+Estado de Cuenta individual
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+<style>
+    /* Estilos para que la lista sea atractiva y adaptable */
+    .ui-autocomplete {
+        max-height: 220px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        z-index: 1050 !important;
+        border-radius: 0 0 10px 10px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        border: 1px solid #ddd;
+        background: white;
+        padding: 0;
+        list-style: none;
+    }
+
+    .ui-menu-item div {
+        padding: 10px 15px !important;
+        font-family: 'Poppins', sans-serif;
+        font-size: 0.9rem;
+        cursor: pointer;
+        border: none !important;
+    }
+
+    .ui-state-active, .ui-widget-content .ui-state-active {
+        background-color: #0d6efd !important;
+        color: white !important;
+        margin: 0 !important;
+    }
+
+    /* Estilos para impresión */
+    @media print {
+        .d-print-none { display: none !important; }
+        .card { border: none !important; box-shadow: none !important; }
+        .table-dark { background-color: #f8f9fa !important; color: black !important; }
+    }
+
+    /* Ajustes para pantallas pequeñas */
+    @media (max-width: 768px) {
+        .alert-info .row { text-align: center; }
+        .alert-info .border-start {
+            border-left: none !important;
+            border-top: 1px solid #dee2e6;
+            margin-top: 10px;
+            padding-top: 10px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="card shadow mb-4">
+        <div class="card-header bg-primary text-white p-3">
+            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3">
+                <h5 class="mb-0">
+                    <i class="fas fa-user-check me-2"></i> Estado de Cuenta Individual
+                </h5>
+                <div class="d-print-none">
+                    <a href="{% url 'facturacion:estado_cuenta_imprimir' %}?nombre_estudiante={{ nombre_buscado }}&anio={{ anio_sel }}" 
+                       class="btn btn-light btn-sm fw-bold px-3 py-2" target="_blank">
+                        <i class="fas fa-print me-1"></i> Imprimir Reporte
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <form method="GET" class="row g-3 mb-4 d-print-none">
+                <div class="col-12 col-lg-5">
+                    <label class="form-label fw-bold">Nombre del Estudiante:</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
+                        <input type="text" name="nombre_estudiante" id="nombre_estudiante" class="form-control" 
+                               placeholder="Escriba para buscar..." value="{{ nombre_buscado }}" 
+                               autocomplete="off" required>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-lg-3">
+                    <label class="form-label fw-bold">Año Lectivo:</label>
+                    <select name="anio" class="form-select" required>
+                        <option value="">-- Seleccione Año --</option>
+                        {% for a in anios %}
+                            <option value="{{ a }}" {% if a|stringformat:"s" == anio_sel %}selected{% endif %}>{{ a }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-12 col-sm-6 col-lg-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100 fw-bold py-2">
+                        CONSULTAR
+                    </button>
+                </div>
+            </form>
+
+            <hr class="d-print-none">
+
+            {% if estudiante_sel %}
+            <div class="alert alert-info border-0 shadow-sm mb-4">
+                <div class="row align-items-center">
+                    <div class="col-12 col-md-5 mb-3 mb-md-0">
+                        <h4 class="mb-1 text-uppercase fw-bold">{{ estudiante_sel.NombreCompleto }}</h4>
+                        <div class="d-flex flex-wrap gap-2 justify-content-center justify-content-md-start">
+                            <span class="badge bg-dark">AÑO: {{ anio_sel }}</span>
+                            <span class="badge bg-primary">NIVEL: {{ academico.nivel }}</span>
+                            <span class="badge bg-secondary">SECC: {{ academico.seccion }}</span>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3 text-center border-start border-md-2">
+                        <div class="small fw-bold text-muted text-uppercase">Total Abonado</div>
+                        <h3 class="mb-0 text-success fw-bold">C$ {{ total_pagado }}</h3>
+                    </div>
+                    <div class="col-6 col-md-4 text-center border-start border-md-2">
+                        <div class="small fw-bold text-muted text-uppercase">Saldo Pendiente</div>
+                        <h3 class="mb-0 {% if total_saldo > 0 %}text-danger{% else %}text-success{% endif %} fw-bold">
+                            C$ {{ total_saldo }}
+                        </h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover align-middle shadow-sm">
+                    <thead class="table-dark text-center">
+                        <tr>
+                            <th style="min-width: 100px;">Fecha Fact.</th>
+                            <th>Factura</th>
+                            <th style="min-width: 200px;">Servicio / Arancel</th>
+                            <th>Monto Original</th>
+                            <th>Descuento</th>
+                            <th>Total Abonado</th>
+                            <th>Estado / Saldo</th>
+                            <th style="min-width: 120px;">Recibos</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in reporte %}
+                        <tr>
+                            <td class="text-center">{{ item.fecha|date:"d/m/Y" }}</td>
+                            <td class="text-center">#{{ item.factura_id }}</td>
+                            <td class="fw-bold">{{ item.servicio }}</td>
+                            <td class="text-end text-nowrap">C$ {{ item.monto_original }}</td>
+                            <td class="text-end text-success text-nowrap">- C$ {{ item.descuento }}</td>
+                            <td class="text-end fw-bold text-nowrap">C$ {{ item.pagado }}</td>
+                            <td class="text-center">
+                                {% if item.saldo <= 0.01 %}
+                                    <span class="badge bg-success w-100 py-2">SALDADO</span>
+                                {% else %}
+                                    <span class="text-danger fw-bold text-nowrap">Pte: C$ {{ item.saldo }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                {% for r in item.recibos %}
+                                    <span class="badge bg-info text-dark border small">{{ r }}</span>
+                                {% endfor %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% elif nombre_buscado %}
+            <div class="alert alert-warning text-center">
+                <i class="fas fa-search me-2"></i> No se encontró el estudiante: <strong>{{ nombre_buscado }}</strong>.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+        var nombresDisponibles = [
+            {% for nombre in todos_estudiantes %}
+                "{{ nombre|escapejs }}",
+            {% endfor %}
+        ];
+
+        $("#nombre_estudiante").autocomplete({
+            source: function(request, response) {
+                var term = request.term.toLowerCase();
+                var matches = $.grep(nombresDisponibles, function(item) {
+                    return item.toLowerCase().indexOf(term) !== -1;
+                });
+                response(matches.slice(0, 3));
+            },
+            minLength: 2,
+            delay: 100
+        });
+    });
+</script>
+{% endblock %}

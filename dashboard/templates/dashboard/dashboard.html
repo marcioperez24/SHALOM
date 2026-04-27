@@ -1,0 +1,300 @@
+{% extends 'principal/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - Sistema Colegio Shalom{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Resumen Administrativo</h1>
+        <div class="text-muted font-weight-bold">
+            <i class="far fa-calendar-alt mr-1"></i> {% now "d \d\e F, Y" %}
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card h-100 shadow-sm border-0 bg-primary text-white">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-uppercase mb-1" style="opacity: 0.8;">Estudiantes Activos</div>
+                            <div class="h2 mb-0 font-weight-bold">{{ total_estudiantes|default:"0" }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-user-graduate fa-2x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card h-100 shadow-sm border-0 bg-success text-white">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-uppercase mb-1" style="opacity: 0.8;">Ingresos del Día</div>
+                            <div class="h2 mb-0 font-weight-bold">C$ {{ ingresos_hoy|default:"0.00" }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-cash-register fa-2x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card h-100 shadow-sm border-0 bg-info text-white">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-uppercase mb-1" style="opacity: 0.8;">Matrículas {% now "Y" %}</div>
+                            <div class="h2 mb-0 font-weight-bold">{{ total_matriculas|default:"0" }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-file-invoice fa-2x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card h-100 shadow-sm border-0 bg-warning text-white">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-uppercase mb-1" style="opacity: 0.8;">Facturas Pendientes</div>
+                            <div class="h2 mb-0 font-weight-bold">{{ facturas_pendientes|default:"0" }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clock fa-2x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-lg-4 mb-4 mb-lg-0">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white py-3">
+                    <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-chart-pie mr-2"></i>Estados de Facturas</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="chartPie" style="max-height: 250px;"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 mb-4 mb-lg-0">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white py-3">
+                    <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-chart-bar mr-2"></i>Estudiantes por Grado</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="chartBar" style="max-height: 250px;"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white py-3">
+                    <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-chart-line mr-2"></i>Ingresos (Últimos 7 días)</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="chartLine" style="max-height: 250px;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8 mb-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white py-3 d-flex align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Últimos Pagos Registrados</h6>
+                    <span class="badge badge-light border text-muted">Mostrando últimos 7</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light text-muted small font-weight-bold">
+                            <tr>
+                                <th class="px-4">N° RECIBO</th>
+                                <th>ESTUDIANTE</th>
+                                <th>MONTO</th>
+                                <th>FECHA</th>
+                                <th class="text-center">ESTADO</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for recibo in ultimos_recibos %}
+                            <tr>
+                                <td class="px-4"><strong>#{{ recibo.ReciboID }}</strong></td>
+                                <td>
+                                    <div class="text-dark font-weight-bold">{{ recibo.FacturaID.EstudianteID.NombreCompleto|default:"N/A" }}</div>
+                                    <small class="text-muted">ID: {{ recibo.FacturaID.EstudianteID.EstudianteID }}</small>
+                                </td>
+                                <td class="text-success font-weight-bold">C$ {{ recibo.MontoPagado }}</td>
+                                <td class="text-muted small">{{ recibo.FechaPago|date:"d/m/Y" }}</td>
+                                <td class="text-center">
+                                    {% if recibo.Estado == "Pagado" %}
+                                        <span class="badge-status bg-soft-success text-success">Pagado</span>
+                                    {% elif recibo.Estado == "Anulado" %}
+                                        <span class="badge-status bg-soft-danger text-danger">Anulado</span>
+                                    {% elif recibo.Estado == "Pendiente" %}
+                                        <span class="badge-status bg-soft-warning text-warning">Pendiente</span>
+                                    {% elif recibo.Estado == "Parcialmente Pagado" %}
+                                        <span class="badge-status bg-soft-info text-info">Parcial</span>
+                                    {% else %}
+                                        <span class="badge badge-light px-3 py-2 text-muted">{{ recibo.Estado }}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-5 text-muted">No hay movimientos registrados hoy.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Nuevos Estudiantes</h6>
+                </div>
+                <div class="card-body px-0 py-2">
+                    <div class="list-group list-group-flush" style="max-height: 585px; overflow-y: auto;">
+                        {% for est in estudiantes_recientes %}
+                        <div class="list-group-item list-group-item-action border-0 px-4 py-3 d-flex align-items-center">
+                            <div style="flex-grow: 1;">
+                                <div class="font-weight-bold text-dark" style="font-size: 0.9rem; line-height: 1.2;">
+                                    {{ est.NombreCompleto }}
+                                </div>
+                                <div class="text-muted small">
+                                    <span class="text-primary font-weight-bold">
+                                        {{ est.matricula__NivelID__NombreNivel|default:"Sin Matrícula" }}
+                                    </span> 
+                                    | Cód: {{ est.Codigo_MINED|default:"S/N" }}
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-5 text-muted">No hay ingresos recientes.</div>
+                        {% endfor %}
+                    </div>
+                    <div class="px-4 mt-3 mb-2">
+                        <a href="{% url 'Matricula:listar_estudiantes' %}" class="btn btn-primary btn-block shadow-sm font-weight-bold py-2">Ver Todo el Alumnado</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card { transition: all 0.3s ease; border-radius: 12px; }
+    .card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.08) !important; }
+    .bg-primary { background: linear-gradient(45deg, #4e73df 0%, #224abe 100%); }
+    .bg-success { background: linear-gradient(45deg, #1cc88a 0%, #13855c 100%); }
+    .bg-info { background: linear-gradient(45deg, #36b9cc 0%, #258391 100%); }
+    .bg-warning { background: linear-gradient(45deg, #f6c23e 0%, #dda20a 100%); }
+
+    .table td { vertical-align: middle; padding: 0.85rem 0.5rem; }
+    
+    .badge-status {
+        padding: 6px 14px; border-radius: 20px;
+        font-size: 0.75rem; font-weight: 700; display: inline-block;
+    }
+
+    .bg-soft-success { background-color: #dcfce7; }
+    .bg-soft-danger { background-color: #fee2e2; }
+    .bg-soft-warning { background-color: #fef3c7; }
+    .bg-soft-info { background-color: #e0f2fe; }
+
+    .avatar-circle {
+        width: 40px; height: 40px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 800; font-size: 0.9rem;
+    }
+    .bg-soft-primary { background-color: #e0e7ff; color: #4338ca; }
+
+    .list-group::-webkit-scrollbar { width: 4px; }
+    .list-group::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // 1. Gráfico de Pastel (Facturas)
+        new Chart(document.getElementById('chartPie'), {
+            type: 'doughnut',
+            data: {
+                labels: [{% for item in estados_data %}"{{ item.Estado }}",{% endfor %}],
+                datasets: [{
+                    data: [{% for item in estados_data %}{{ item.total }},{% endfor %}],
+                    backgroundColor: ['#1cc88a', '#f6c23e', '#e74a3b', '#4e73df'],
+                    borderWidth: 0
+                }]
+            },
+            options: { 
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } }
+            }
+        });
+
+        // 2. Gráfico de Barras (Estudiantes por Grado/Nivel)
+        new Chart(document.getElementById('chartBar'), {
+            type: 'bar',
+            data: {
+                // CAMBIO AQUÍ: Usamos NivelID__NombreNivel que es el campo correcto según tu DB
+                labels: [{% for item in grados_data %}"{{ item.NivelID__NombreNivel }}",{% endfor %}],
+                datasets: [{
+                    label: 'Estudiantes',
+                    data: [{% for item in grados_data %}{{ item.total }},{% endfor %}],
+                    backgroundColor: '#36b9cc',
+                    borderRadius: 5
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { 
+                    y: { 
+                        beginAtZero: true, 
+                        ticks: { stepSize: 1 } 
+                    } 
+                }
+            }
+        });
+
+        // 3. Gráfico de Líneas (Tendencia de Ingresos)
+        new Chart(document.getElementById('chartLine'), {
+            type: 'line',
+            data: {
+                labels: [{% for item in ingresos_semana %}"{{ item.FechaPago|date:'d/m' }}",{% endfor %}],
+                datasets: [{
+                    label: 'Ingresos C$',
+                    data: [{% for item in ingresos_semana %}{{ item.total }},{% endfor %}],
+                    borderColor: '#1cc88a',
+                    backgroundColor: 'rgba(28, 200, 138, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } }
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,176 @@
+{% extends 'principal/base.html' %}
+{% load static %} <!-- Cargar static para Font Awesome si es necesario -->
+
+{% block page_title %}
+Historial de Arqueos
+{% endblock %}
+
+{% block extra_css %}
+<!-- Font Awesome para íconos (si no está en base.html) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row mb-4 align-items-center">
+        <!-- Título: Centrado en móvil, alineado a la izquierda en escritorio -->
+        <div class="col-md-8 text-center text-md-start">
+            <h2 class="display-5 fw-bold">Historial de Arqueos</h2> 
+            <p class="lead text-muted">Revisa el resumen de todos los arqueos diarios y accede a sus detalles.</p>
+        </div>
+        <!-- Botón: Centrado en móvil, alineado a la derecha en escritorio. Botón más pequeño (btn-md) -->
+        <div class="col-md-4 text-center text-md-end mt-3 mt-md-0"> 
+            <a href="{% url 'facturacion:facturacion_home' %}" class="btn btn-secondary btn-md"> <!-- btn-lg cambiado a btn-md -->
+                <i class="fas fa-arrow-left me-1"></i> Volver al Panel
+            </a>
+        </div>
+    </div>
+    <hr>
+    
+    <div class="card shadow-sm">
+        <div class="card-header bg-dark text-white">
+             <!-- Icono actualizado -->
+            <h5 class="mb-0"><i class="fas fa-table me-2"></i>Resumen de Arqueos</h5>
+        </div>
+        <div class="card-body p-0"> 
+            {% if arqueos_page %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover align-middle mb-0"> 
+                        <thead class="table-light">
+                            <tr>
+                                <th scope="col">ID</th>
+                                <th scope="col">Fecha</th>
+                                <th scope="col">Monto Calculado ($)</th>
+                                <th scope="col">Monto Calculado (C$)</th>
+                                <th scope="col">Estado</th>
+                                <th scope="col">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Bucle actualizado para usar el objeto de página -->
+                            {% for arqueo in arqueos_page %} 
+                            <tr>
+                                <!-- Celdas de la tabla (ya son responsivas gracias a .table-responsive) -->
+                                <td>{{ arqueo.ArqueoID }}</td>
+                                <td>{{ arqueo.Fecha|date:"d M Y" }}</td>
+                                <td>$ {{ arqueo.MontoCalculado_USD|floatformat:2 }}</td>
+                                <td>C$ {{ arqueo.MontoCalculado_Cordobas|floatformat:2 }}</td>
+                                <td>
+                                    {% if arqueo.Activa %}
+                                        <span class="badge bg-success">Activo</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Cerrado</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'facturacion:detalle_arqueo' arqueo.ArqueoID %}" class="btn btn-sm btn-outline-info">
+                                        <!-- Icono actualizado -->
+                                        <i class="fas fa-eye me-1"></i> Ver Detalles
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                 <div class="card-body"> 
+                    <div class="alert alert-info mb-0" role="alert">
+                        No se encontraron arqueos de caja.
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- 
+        =============================================================
+          BLOQUE DE PAGINACIÓN (MEJORADO PARA RESPONSIVE)
+        =============================================================
+        -->
+        {% if arqueos_page.paginator.num_pages > 1 %}
+        <div class="card-footer bg-light">
+            <!-- Contenedor flex: se apila en móvil (flex-column), fila en escritorio (flex-md-row) -->
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-center">
+                
+                <!-- Conteo de resultados -->
+                <div class="text-muted mb-2 mb-md-0">
+                    Mostrando {{ arqueos_page.start_index }} - {{ arqueos_page.end_index }} de {{ arqueos_page.paginator.count }} arqueos.
+                </div>
+                
+                <!-- Controles de Paginación -->
+                <!-- Centrado en móvil (justify-content-center) y envuelve si no cabe (flex-wrap) -->
+                <nav aria-label="Navegación de arqueos" class="d-flex justify-content-center">
+                    <ul class="pagination pagination-sm mb-0 flex-wrap justify-content-center"> 
+                        
+                        <!-- Primera -->
+                        {% if arqueos_page.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1" aria-label="Primera">
+                                    <i class="fas fa-angle-double-left"></i> Primera
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link"><i class="fas fa-angle-double-left"></i> Primera</span>
+                            </li>
+                        {% endif %}
+                        
+                        <!-- Anterior -->
+                        {% if arqueos_page.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ arqueos_page.previous_page_number }}" aria-label="Anterior">
+                                    <i class="fas fa-angle-left"></i> Anterior
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link"><i class="fas fa-angle-left"></i> Anterior</span>
+                            </li>
+                        {% endif %}
+                        
+                        <!-- Números de Página (Rango) -->
+                        {% for i in paginator_range %}
+                            {% if arqueos_page.number == i %}
+                                <li class="page-item active" aria-current="page"><span class="page-link">{{ i }}</span></li>
+                            {% else %}
+                                <li class="page-item"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        <!-- Siguiente -->
+                        {% if arqueos_page.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ arqueos_page.next_page_number }}" aria-label="Siguiente">
+                                    Siguiente <i class="fas fa-angle-right"></i>
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">Siguiente <i class="fas fa-angle-right"></i></span>
+                            </li>
+                        {% endif %}
+                        
+                        <!-- Última -->
+                        {% if arqueos_page.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ arqueos_page.paginator.num_pages }}" aria-label="Última">
+                                    Última <i class="fas fa-angle-double-right"></i>
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">Última <i class="fas fa-angle-double-right"></i></span>
+                            </li>
+                        {% endif %}
+                        
+                    </ul>
+                </nav>
+            </div>
+        </div>
+        {% endif %}
+        <!-- Fin Bloque de Paginación -->
+
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,187 @@
+{% extends 'principal/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %} {% block page_title %}
+Inscripción de Materias
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Inscribir Materias para {{ estudiante.NombreCompleto }}</h2>
+    
+    {% if messages %}
+    {% endif %}
+
+    <div class="card p-4">
+        <p><strong>Nivel:</strong> {{ matricula.NivelID.NombreNivel }}</p>
+        <p><strong>Sección:</strong> {{ matricula.SeccionID.NombreSeccion }}</p>
+        <p><strong>Fecha de Matrícula:</strong> {{ matricula.FechaMatricula }}</p>
+
+        {% if todas_inscritas %}
+        <div class="alert alert-success d-flex align-items-center" role="alert">
+            <i class="fas fa-check-circle fa-2x me-3"></i>
+            <div>
+                <h5 class="alert-heading mb-1">¡Inscripción Completa!</h5>
+                <p class="mb-0">El estudiante tiene inscritas todas las materias de este nivel ({{ materias_inscritas_count }} de {{ total_materias_nivel }} materias).</p>
+            </div>
+        </div>
+        {% else %}
+        <div class="alert alert-warning d-flex align-items-center" role="alert">
+            <i class="fas fa-exclamation-triangle fa-2x me-3"></i>
+            <div>
+                <h5 class="alert-heading mb-1">Inscripción Incompleta</h5>
+                <p class="mb-0">El estudiante solo tiene {{ materias_inscritas_count }} de {{ total_materias_nivel }} materias inscritas. Por favor agregue las materias faltantes:</p>
+                {% if materias_faltantes %}
+                <ul class="mb-0 mt-2 small">
+                    {% for m in materias_faltantes %}
+                    <li><strong>{{ m.NombreMateria }}</strong></li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <form method="post" id="inscripciones_form">
+            {% csrf_token %}
+            {{ formset.management_form }}
+            
+            <div id="formset-container">
+                {% for form in formset %}
+                    <div class="form-row formset-form mb-3 d-flex align-items-center">
+                        {% for hidden in form.hidden_fields %}
+                            {{ hidden }}
+                        {% endfor %}
+                        <div class="col-md-10">
+                            {{ form.MateriaID }}
+                        </div>
+                        <div class="col-md-2 d-flex align-items-center">
+                            <span class="d-none">{{ form.DELETE }}</span>
+                            <button type="button" class="btn btn-danger remove-form-btn ms-2" style="display: none;">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <button type="button" class="btn btn-secondary mt-3" id="add-form">Agregar otra materia</button>
+            <button type="submit" class="btn btn-primary mt-3">Guardar Inscripciones</button>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const formsetContainer = document.getElementById('formset-container');
+    const addButton = document.getElementById('add-form');
+    const totalForms = document.querySelector('#id_inscripciones-TOTAL_FORMS');
+    
+    let formCount = formsetContainer.children.length;
+
+    function toggleRemoveButtons() {
+        const removeButtons = document.querySelectorAll('.remove-form-btn');
+        if (formCount > 1) {
+            removeButtons.forEach(btn => btn.style.display = 'block');
+        } else {
+            removeButtons.forEach(btn => btn.style.display = 'none');
+        }
+    }
+    toggleRemoveButtons();
+
+    // Función modificada para actualizar los índices sin sobrescribir los valores
+    function updateFormIndexes() {
+        const forms = formsetContainer.querySelectorAll('.formset-form');
+        let index = 0;
+        forms.forEach(form => {
+            const regex = new RegExp(`inscripciones-\\d+-`, 'g');
+            // Reemplazar solo los atributos de nombre e ID de los campos, no el HTML completo
+            const inputs = form.querySelectorAll('input, select');
+            inputs.forEach(input => {
+                input.name = input.name.replace(regex, `inscripciones-${index}-`);
+                input.id = input.id.replace(regex, `inscripciones-${index}-`);
+            });
+            index++;
+        });
+        totalForms.value = index;
+    }
+
+    formsetContainer.addEventListener('change', function(e) {
+        if (e.target.tagName === 'SELECT') {
+            const selectedMaterias = new Set();
+            
+            formsetContainer.querySelectorAll('select').forEach(select => {
+                if (select.value && select.closest('.formset-form').style.display !== 'none') {
+                    if (selectedMaterias.has(select.value)) {
+                        e.target.value = '';
+                        alert('¡Esta materia ya ha sido seleccionada!');
+                    } else {
+                        selectedMaterias.add(select.value);
+                    }
+                }
+            });
+        }
+    });
+
+    addButton.addEventListener('click', function() {
+        const firstForm = formsetContainer.querySelector('.formset-form');
+        const newForm = firstForm.cloneNode(true);
+        const regex = new RegExp(`inscripciones-\\d+-`, 'g');
+        
+        newForm.innerHTML = newForm.innerHTML.replace(regex, `inscripciones-${formCount}-`);
+        
+        const selectElement = newForm.querySelector('select');
+        if (selectElement) {
+            selectElement.value = '';
+        }
+
+        const deleteInput = newForm.querySelector('input[type="checkbox"]');
+        if (deleteInput) {
+             deleteInput.checked = false;
+        }
+
+        const hiddenPk = newForm.querySelector('input[type="hidden"][name$="-InscripcionID"], input[type="hidden"][name$="-id"]');
+        if (hiddenPk) {
+            hiddenPk.value = '';
+        }
+        
+        const removeButton = newForm.querySelector('.remove-form-btn');
+        if (removeButton) {
+            removeButton.style.display = 'block';
+        }
+        
+        newForm.style.display = 'flex';
+        formsetContainer.appendChild(newForm);
+        totalForms.value = formCount + 1;
+        formCount++;
+
+        toggleRemoveButtons();
+    });
+
+    formsetContainer.addEventListener('click', function(e) {
+        if (e.target.closest('.remove-form-btn')) {
+            const formToRemove = e.target.closest('.form-row');
+            const deleteInput = formToRemove.querySelector('input[type="checkbox"]');
+            const pkField = formToRemove.querySelector('input[name$="-InscripcionID"], input[name$="-id"]');
+            
+            if (formCount > 1) {
+                if (pkField && pkField.value) {
+                    if (deleteInput) {
+                        deleteInput.checked = true;
+                    }
+                    formToRemove.style.display = 'none';
+                    formCount--;
+                } else {
+                    formToRemove.remove();
+                    formCount--;
+                    updateFormIndexes();
+                }
+
+                toggleRemoveButtons();
+            } else {
+                alert('No se pueden eliminar todas las materias.');
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

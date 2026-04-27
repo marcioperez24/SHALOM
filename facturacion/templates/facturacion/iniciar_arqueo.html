@@ -1,0 +1,57 @@
+{% extends 'principal/base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Iniciar Arqueo de Caja</h5>
+        </div>
+        <div class="card-body">
+            <form id="formArqueo" method="post" action="{% url 'facturacion:iniciar_arqueo' %}">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="monto_cordobas" class="form-label">Monto Declarado (C$):</label>
+                    <input type="number" step="0.01" class="form-control" id="monto_cordobas" name="monto_cordobas" required>
+                </div>
+                <div class="mb-3">
+                    <label for="monto_usd" class="form-label">Monto Declarado (USD):</label>
+                    <input type="number" step="0.01" class="form-control" id="monto_usd" name="monto_usd" required>
+                </div>
+                <button type="submit" class="btn btn-success">Registrar Arqueo</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.getElementById('formArqueo').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const form = e.target;
+        const formData = new FormData(form);
+
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                // Redirigir a la vista de lista de arqueos o a una página de éxito
+                window.location.href = '{% url "facturacion:lista_arqueos" %}';
+            } else {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            alert('Ocurrió un error al procesar el arqueo.');
+            console.error('Error:', error);
+        });
+    });
+</script>
+{% endblock %}

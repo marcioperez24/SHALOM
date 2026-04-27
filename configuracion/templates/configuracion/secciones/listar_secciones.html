@@ -1,0 +1,77 @@
+{% extends 'principal/base.html' %}
+
+{% block title %}Listado de Secciones{% endblock %}
+
+{% block page_title %}Listado de Secciones{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Secciones</h6>
+                {% if perms.configuracion.crear_seccion %}
+                <a href="{% url 'configuracion:crear_seccion' %}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus"></i> Crear Sección
+                </a>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>Nivel</th>
+                                <th>Nombre de la Sección</th>
+                                <th>Cupos Disponibles</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for seccion in secciones %}
+                            <tr>
+                                <td>{{ seccion.NivelID.NombreNivel }}</td>
+                                <td>{{ seccion.NombreSeccion }}</td>
+                                <td>{{ seccion.CuposDisponibles }}</td>
+                                <td>
+                                    {% if seccion.Activo %}
+                                    <span class="badge bg-success">Activa</span>
+                                    {% else %}
+                                    <span class="badge bg-danger">Inactiva</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if perms.configuracion.editar_seccion %}
+                                    <a href="{% url 'configuracion:editar_seccion' seccion.SeccionID %}" class="btn btn-sm btn-info">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    {% endif %}
+                                    {% if perms.configuracion.eliminar_seccion %}
+                                    <a href="{% url 'configuracion:eliminar_seccion' seccion.SeccionID %}" class="btn btn-sm btn-danger">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5">No hay secciones disponibles.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

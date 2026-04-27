@@ -1,0 +1,294 @@
+{% extends 'principal/base.html' %}
+{% load static %}
+
+{% block page_title %}
+Generar Boletín Individual
+{% endblock %}
+
+{% block extra_css %}
+<!-- Añadimos CSS para jQuery UI Autocomplete -->
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.13.3/themes/base/jquery-ui.css">
+<!-- Font Awesome para íconos -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+    /* Ajustes para el autocompletar */
+    .ui-autocomplete {
+        max-height: 200px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        /* Asegurar que esté por encima */
+        z-index: 1050 !important;
+        /* Posicionamiento absoluto es clave */
+        position: absolute !important;
+        cursor: default;
+        /* Estilos visuales básicos */
+        background-color: #fff;
+        border: 1px solid #ced4da;
+        border-radius: 0.375rem;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+    .ui-menu-item {
+        padding: 0.5rem 1rem;
+    }
+    .ui-menu-item-wrapper {
+        color: #212529;
+        display: block; /* Asegurar que ocupe todo el espacio */
+    }
+    /* Estilo al pasar el mouse o seleccionar */
+    .ui-menu-item-wrapper.ui-state-active {
+        background-color: #0d6efd;
+        color: white;
+        border: none;
+        border-radius: 0;
+        cursor: pointer;
+        margin: 0; /* Resetear márgenes */
+    }
+    /* Estilo para los checkboxes */
+    .period-options .form-check {
+        margin-bottom: 0.5rem;
+    }
+    /* Contenedor para el input de búsqueda */
+    .student-search-container {
+        position: relative; /* Contexto para el posicionamiento absoluto del menú */
+    }
+     /* Estilo para breadcrumb como botones */
+    .btn-breadcrumb .btn {
+        border-radius: 0; /* Esquinas cuadradas */
+    }
+    .btn-breadcrumb .btn:first-child {
+        border-top-left-radius: .25rem;
+        border-bottom-left-radius: .25rem;
+    }
+    .btn-breadcrumb .btn:last-child {
+        border-top-right-radius: .25rem;
+        border-bottom-right-radius: .25rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row mb-3">
+        <div class="col-12">
+            <h2 class="text-secondary" >Generar Boletín Individual</h2>
+            <!-- 
+            =============================================================
+              BREADCRUMB MODIFICADO CON ESTILO DE BOTONES
+            =============================================================
+            -->
+            <nav aria-label="breadcrumb" class="mt-2 mb-4">
+                <div class="btn-group btn-group-sm btn-breadcrumb" role="group" aria-label="Breadcrumb navigation">
+                    <a href="{% url 'Matricula:Matricula_home' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-home me-1"></i> Panel
+                    </a>
+                    <button type="button" class="btn btn-secondary active" aria-current="page" disabled>
+                        <i class="fas fa-filter me-1"></i> Filtro Boletín
+                    </button>
+                </div>
+            </nav>
+            <!-- Fin Breadcrumb Modificado -->
+            <p class="text-muted">Selecciona el estudiante y los periodos académicos que deseas incluir en el boletín.</p>
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="card shadow-lg">
+        <div class="card-body p-4">
+            <form id="boletinForm" method="GET" action="#">
+                {% csrf_token %}
+
+                <!-- 1. Selección de Estudiante -->
+                <div class="mb-5 student-search-container">
+                    <label for="student_search" class="form-label fw-bold fs-5 text-primary">
+                        <i class="fas fa-search me-2"></i>Buscar Estudiante
+                    </label>
+                    <input type="text" id="student_search" class="form-control form-control-lg" placeholder="Escribe el nombre del estudiante...">
+                    <input type="hidden" id="student_id" name="student_id">
+                    <div id="student_name_display" class="mt-2 text-muted fst-italic"></div>
+                </div>
+
+                <hr>
+
+                <!-- 2. Selección de Periodos -->
+                <div class="mb-4">
+                    <label class="form-label fw-bold fs-5 text-primary">
+                        <i class="fas fa-calendar-check me-2"></i>Periodos a Incluir
+                    </label>
+                    <div class="period-options row">
+                        <div class="col-md-4">
+                            <div class="form-check">
+                                <input class="form-check-input period-check" type="checkbox" name="c1" id="check_c1">
+                                <label class="form-check-label" for="check_c1" >Primer Corte</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input period-check" type="checkbox" name="c2" id="check_c2">
+                                <label class="form-check-label" for="check_c2">Segundo Corte</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input period-check" type="checkbox" name="s1" id="check_s1">
+                                <label class="form-check-label fw-bold" for="check_s1">I Semestre (Incluye C1, C2)</label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check">
+                                <input class="form-check-input period-check" type="checkbox" name="c3" id="check_c3">
+                                <label class="form-check-label" for="check_c3">Tercer Corte</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input period-check" type="checkbox" name="c4" id="check_c4">
+                                <label class="form-check-label" for="check_c4">Cuarto Corte</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input period-check" type="checkbox" name="s2" id="check_s2">
+                                <label class="form-check-label fw-bold" for="check_s2">II Semestre (Incluye C3, C4)</label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check">
+                                <input class="form-check-input period-check" type="checkbox" name="nf" id="check_nf">
+                                <label class="form-check-label fw-bold text-success" for="check_nf">Nota Final (Incluye Todo)</label>
+                            </div>
+                             <div class="form-check mt-3">
+                                <input class="form-check-input" type="checkbox" name="all" id="check_all">
+                                <label class="form-check-label fw-bold text-danger" for="check_all">Mostrar Todos los Periodos</label>
+                            </div>
+                        </div>
+                    </div>
+                     <small class="form-text text-muted">Selecciona los cortes o semestres específicos, o marca "Mostrar Todos". Si seleccionas un semestre o la nota final, los cortes correspondientes se incluirán automáticamente.</small>
+                </div>
+
+                <!-- 3. Datos a Mostrar -->
+                <div class="mb-4">
+                    <label class="form-label fw-bold fs-5 text-primary">
+                        <i class="fas fa-list-numeric me-2"></i>Datos a Mostrar en el Boletín
+                    </label>
+                    <div class="row bg-light p-3 rounded border">
+                        <div class="col-md-4">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="tipo_nota" id="nota_ambas" value="ambas" checked>
+                                <label class="form-check-label fw-bold" for="nota_ambas">Ambas (Numérica y Cualitativa)</label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="tipo_nota" id="nota_cuant" value="cuantitativa">
+                                <label class="form-check-label" for="nota_cuant">Solo Numérica (Ej: 85)</label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="tipo_nota" id="nota_cual" value="cualitativa">
+                                <label class="form-check-label" for="nota_cual">Solo Cualitativa (Ej: AA, AS)</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. Botón de Generar -->
+                <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-5">
+                    <button type="submit" class="btn btn-primary btn-lg shadow-sm" id="generateButton" disabled>
+                        <i class="fas fa-file-pdf me-2"></i>Generar Boletín
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- jQuery y jQuery UI (necesarios para Autocomplete) -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://code.jquery.com/ui/1.13.3/jquery-ui.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    const studentSearchInput = $("#student_search");
+    const studentIdInput = $("#student_id");
+    const studentNameDisplay = $("#student_name_display");
+    const generateButton = $("#generateButton");
+    const boletinForm = $("#boletinForm");
+    const periodCheckboxes = $(".period-check");
+    const checkAll = $("#check_all");
+    const searchContainer = $(".student-search-container"); // Contenedor del input
+
+    // --- Autocompletar para Estudiantes ---
+    studentSearchInput.autocomplete({
+        source: "{% url 'Matricula:api_buscar_estudiantes' %}",
+        minLength: 2,
+        appendTo: searchContainer, // Añadir el menú DENTRO del div contenedor
+        position: { my: "left top", at: "left bottom", collision: "none" }, // Posicionar debajo del input
+        open: function() {
+            // Ajustar el ancho del menú al ancho del input
+            $(this).autocomplete("widget").css({
+                "width": studentSearchInput.outerWidth() + "px"
+            });
+        },
+        select: function(event, ui) {
+            studentIdInput.val(ui.item.id);
+            studentNameDisplay.text("Estudiante seleccionado: " + ui.item.label);
+            studentSearchInput.val(ui.item.label);
+            generateButton.prop('disabled', false);
+            return false;
+        },
+        change: function(event, ui) {
+            if (!ui.item) {
+                studentIdInput.val('');
+                studentNameDisplay.text('');
+                generateButton.prop('disabled', true);
+            }
+        }
+    });
+
+    // --- Lógica para Checkboxes de Periodo (Sin cambios) ---
+    checkAll.on('change', function() {
+        if ($(this).is(':checked')) {
+            periodCheckboxes.prop('checked', false).prop('disabled', true);
+        } else {
+            periodCheckboxes.prop('disabled', false);
+        }
+    });
+
+    periodCheckboxes.on('change', function() {
+        if (periodCheckboxes.filter(':checked').length > 0) {
+             checkAll.prop('checked', false).prop('disabled', true);
+        } else {
+            checkAll.prop('disabled', false);
+        }
+    });
+
+    // --- Manejo del Envío del Formulario (Sin cambios) ---
+    boletinForm.on('submit', function(e) {
+        e.preventDefault();
+
+        const studentId = studentIdInput.val();
+        if (!studentId) {
+            alert("Por favor, selecciona un estudiante.");
+            return;
+        }
+
+        if (periodCheckboxes.filter(':checked').length === 0 && !checkAll.is(':checked')) {
+             alert("Por favor, selecciona al menos un periodo para incluir en el boletín o marca 'Mostrar Todos'.");
+             return;
+        }
+
+        let baseUrl = "{% url 'Matricula:ver_boletin_individual' 0 %}";
+        baseUrl = baseUrl.replace('/0/', '/' + studentId + '/');
+
+        const params = $(this).serialize();
+
+        window.location.href = baseUrl + "?" + params;
+    });
+
+});
+</script>
+{% endblock %}
+

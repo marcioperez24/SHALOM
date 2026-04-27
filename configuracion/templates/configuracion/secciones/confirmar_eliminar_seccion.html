@@ -1,0 +1,30 @@
+{% extends 'principal/base.html' %}
+
+{% block title %}Confirmar Desactivación de Sección{% endblock %}
+
+{% block page_title %}Confirmar Desactivación{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-danger">Confirmar Desactivación</h6>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning" role="alert">
+                    <p>¿Estás seguro de que quieres desactivar la sección <strong>{{ seccion.NombreSeccion }}</strong>?</p>
+                    <p>Esta acción no la eliminará permanentemente, pero la marcará como inactiva.</p>
+                </div>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-end">
+                        <a href="{% url 'configuracion:listar_secciones' %}" class="btn btn-secondary me-2">Cancelar</a>
+                        <button type="submit" class="btn btn-danger">Confirmar Desactivación</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

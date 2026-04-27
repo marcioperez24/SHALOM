@@ -1,0 +1,217 @@
+{% extends 'principal/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <form method="post" enctype="multipart/form-data" class="shadow p-4 bg-white rounded" id="formEmpleado">
+        {% csrf_token %}
+        
+        <input type="hidden" id="empleado_id" value="{{ form_emp.instance.pk|default:'' }}">
+
+        <h3 class="text-primary mb-4">
+            <i class="fas {% if editando %}fa-user-edit{% else %}fa-user-plus{% endif %}"></i> 
+            {% if editando %}Editar Empleado: {{ form_emp.instance.nombres }} {{ form_emp.instance.apellidos }}{% else %}Registro de Nuevo Empleado{% endif %}
+        </h3>
+        
+        <div class="row">
+            <div class="col-md-6 border-end">
+                <h5 class="text-secondary border-bottom pb-2">Información Personal</h5>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label small fw-bold">Nombres</label>
+                        {{ form_emp.nombres }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label small fw-bold">Apellidos</label>
+                        {{ form_emp.apellidos }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label small fw-bold">Cédula</label>
+                        {{ form_emp.cedula }}
+                        <div id="error-cedula" class="text-danger small fw-bold mt-1" style="display:none;">
+                            <i class="fas fa-exclamation-circle"></i> Esta cédula ya existe.
+                        </div>
+                        {% if form_emp.cedula.errors %}
+                            <small class="text-danger d-block">{{ form_emp.cedula.errors.0 }}</small>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label small fw-bold">N° INSS</label>
+                        {{ form_emp.numero_inss }}
+                        <div id="error-inss" class="text-danger small fw-bold mt-1" style="display:none;">
+                            <i class="fas fa-exclamation-circle"></i> Este número de INSS ya existe.
+                        </div>
+                        {% if form_emp.numero_inss.errors %}
+                            <small class="text-danger d-block">{{ form_emp.numero_inss.errors.0 }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label small fw-bold">Fecha de Nacimiento</label>
+                        {{ form_emp.fecha_nacimiento }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label small fw-bold">Teléfono</label>
+                        {{ form_emp.telefono }}
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">Dirección</label>
+                    {{ form_emp.direccion }}
+                </div>
+
+                <h5 class="text-secondary border-bottom pb-2 mt-4">Documentación Digital</h5>
+                
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">Currículum Vitae (PDF)</label>
+                    {% if form_emp.instance.curriculum %}
+                        <div class="mb-1 d-flex align-items-center justify-content-between">
+                            <span class="badge bg-success">
+                                <i class="fas fa-check-circle"></i> Archivo actual: 
+                                <a href="{{ form_emp.instance.curriculum.url }}" target="_blank" class="text-white text-decoration-none">Ver CV cargado</a>
+                            </span>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="eliminar_cv" id="eliminar_cv">
+                                <label class="form-check-label small text-danger fw-bold" for="eliminar_cv">Eliminar</label>
+                            </div>
+                        </div>
+                    {% endif %}
+                    {{ form_emp.curriculum }}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">Diplomas / Títulos</label>
+                    {% if form_emp.instance.diplomas %}
+                        <div class="mb-1 d-flex align-items-center justify-content-between">
+                            <span class="badge bg-info">
+                                <i class="fas fa-file-pdf"></i> Archivo actual: 
+                                <a href="{{ form_emp.instance.diplomas.url }}" target="_blank" class="text-white text-decoration-none">Ver Diplomas</a>
+                            </span>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="eliminar_diplomas" id="eliminar_diplomas">
+                                <label class="form-check-label small text-danger fw-bold" for="eliminar_diplomas">Eliminar</label>
+                            </div>
+                        </div>
+                    {% endif %}
+                    {{ form_emp.diplomas }}
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <h5 class="text-secondary border-bottom pb-2">Configuración Laboral</h5>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label small fw-bold">Cargo</label>
+                        {{ form_emp.cargo }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label small fw-bold">Fecha Contratación</label>
+                        {{ form_emp.fecha_contratacion }}
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">Salario Mensual Básico (C$)</label>
+                    {{ form_con.salario_base }}
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">Porcentaje de Antigüedad (%)</label>
+                    {{ form_con.porcentaje_antiguedad }}
+                </div>
+                <div class="card bg-light p-3">
+                    <h6>Deducciones de Ley (Nicaragua)</h6>
+                    <div class="form-check form-switch mb-2">
+                        {{ form_con.paga_inss }}
+                        <label class="form-check-label">Aplicar INSS Laboral (7%)</label>
+                    </div>
+                    <div class="form-check form-switch">
+                        {{ form_con.paga_ir }}
+                        <label class="form-check-label">Aplicar Retención IR (DGI)</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-end mt-4 pt-3 border-top">
+            <a href="{% url 'recursos_humanos:lista_empleados' %}" class="btn btn-secondary">Cancelar</a>
+            <button type="submit" id="btnGuardar" class="btn btn-primary px-5 fw-bold">Guardar Cambios</button>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const inputCedula = document.querySelector('input[name="cedula"]');
+    const inputInss = document.querySelector('input[name="numero_inss"]');
+    const empId = document.getElementById('empleado_id').value;
+    const btnGuardar = document.getElementById('btnGuardar');
+
+    let cedulaOk = true;
+    let inssOk = true;
+
+    async function validarDato(valor, tipo, errorDivId) {
+        if (!valor) {
+            document.getElementById(errorDivId).style.display = 'none';
+            return;
+        }
+
+        const url = `{% url 'recursos_humanos:verificar_duplicados' %}?valor=${valor}&tipo=${tipo}&empleado_id=${empId}`;
+        
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+            const errorDiv = document.getElementById(errorDivId);
+
+            if (data.existe) {
+                errorDiv.style.display = 'block';
+                if (tipo === 'cedula') cedulaOk = false;
+                else inssOk = false;
+            } else {
+                errorDiv.style.display = 'none';
+                if (tipo === 'cedula') cedulaOk = true;
+                else inssOk = true;
+            }
+            
+            btnGuardar.disabled = !(cedulaOk && inssOk);
+            
+        } catch (error) {
+            console.error("Error validando:", error);
+        }
+    }
+
+    inputCedula.addEventListener('input', function() {
+        let val = inputCedula.value;
+        // Si el lector disparó una cadena larguísima (ej: PDF417 o MRZ), busquemos el patrón de cédula:
+        const scannerRegex = /(\d{3})[-<]*(\d{6})[-<]*(\d{4}[A-Za-z])/;
+        const match = val.match(scannerRegex);
+
+        if (match) {
+            // El escáner arrojó toda la basura, pero encontramos la cédula.
+            // Limpiamos y dejamos la cédula formateada.
+            inputCedula.value = `${match[1]}-${match[2]}-${match[3]}`.toUpperCase();
+        } else {
+            // Es digitación manual manual: auto-poner guiones al vuelo
+            // Remover todo lo que no sea número o letra
+            let raw = val.replace(/[^0-9a-zA-Z]/g, '').toUpperCase();
+            if (raw.length > 14) raw = raw.substring(0, 14);
+
+            let formatted = '';
+            if (raw.length > 0) formatted += raw.substring(0, 3);
+            if (raw.length >= 4) formatted += '-' + raw.substring(3, 9);
+            if (raw.length >= 10) formatted += '-' + raw.substring(9, 13) + (raw.length === 14 ? raw.substring(13, 14) : '');
+            
+            inputCedula.value = formatted;
+        }
+    });
+
+    inputCedula.addEventListener('blur', () => {
+        validarDato(inputCedula.value, 'cedula', 'error-cedula');
+    });
+
+    inputInss.addEventListener('blur', () => {
+        validarDato(inputInss.value, 'inss', 'error-inss');
+    });
+});
+</script>
+{% endblock %}

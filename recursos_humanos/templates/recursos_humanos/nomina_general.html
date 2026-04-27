@@ -1,0 +1,113 @@
+{% extends 'principal/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="card shadow border-0">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+            <h4 class="mb-0 text-primary fw-bold">
+                <i class="fas fa-file-invoice-dollar me-2"></i> Nómina General: {{ mes_actual }} / {{ anio_actual }}
+            </h4>
+            <div class="no-print">
+                <a href="{% url 'recursos_humanos:imprimir_nomina_general' %}?mes={{ mes_actual }}&anio={{ anio_actual }}" target="_blank" class="btn btn-success">
+                    <i class="fas fa-print me-1"></i> Imprimir Nómina Completa
+                </a>
+            </div>
+        </div>
+        
+        <div class="card-body">
+            <!-- Formulario de Filtros -->
+            <form method="GET" class="row g-3 mb-4 bg-light p-3 rounded border no-print">
+                <div class="col-md-3">
+                    <label class="form-label fw-bold small">Seleccionar Mes</label>
+                    <select name="mes" class="form-select">
+                        {% for m_num, m_nom in meses_lista %}
+                            <option value="{{ m_num }}" {% if mes_actual == m_num %}selected{% endif %}>{{ m_nom }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-bold small">Año</label>
+                    <select name="anio" class="form-select">
+                        {% for a in anios_lista %}
+                            <option value="{{ a }}" {% if anio_actual == a %}selected{% endif %}>{{ a }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-filter me-1"></i> Filtrar
+                    </button>
+                </div>
+            </form>
+
+            <div class="table-responsive">
+                <table class="table table-sm table-hover table-bordered align-middle">
+                    <thead class="table-dark">
+                        <tr class="text-center small">
+                            <th>Empleado</th>
+                            <th>Cargo</th>
+                            <th>Salario Base</th>
+                            <th>Antigüedad</th>
+                            <th>Extras</th>
+                            <th class="bg-primary">Total Devengado</th>
+                            <th>INSS (7%)</th>
+                            <th>IR (DGI)</th>
+                            <th>Otras Ded.</th>
+                            <th class="bg-success">Neto a Recibir</th>
+                        </tr>
+                    </thead>
+                    <tbody class="small">
+                        {% for n in nominas %}
+                        <tr>
+                            <td><strong>{{ n.empleado.apellidos }}, {{ n.empleado.nombres }}</strong><br>
+                                <small class="text-muted">{{ n.empleado.cedula }}</small></td>
+                            <td>{{ n.empleado.cargo }}</td>
+                            <td class="text-end">C$ {{ n.salario_basico|floatformat:2 }}</td>
+                            <td class="text-end">C$ {{ n.monto_antiguedad|floatformat:2 }}</td>
+                            <td class="text-end">C$ {{ n.horas_extras_monto|floatformat:2 }}</td>
+                            <td class="text-end fw-bold table-primary">C$ {{ n.total_devengado|floatformat:2 }}</td>
+                            <td class="text-end text-danger">C$ {{ n.inss_laboral|floatformat:2 }}</td>
+                            <td class="text-end text-danger">C$ {{ n.ir_mensual|floatformat:2 }}</td>
+                            <td class="text-end text-danger">C$ {{ n.otras_deducciones|floatformat:2 }}</td>
+                            <td class="text-end fw-bold table-success">C$ {{ n.total_a_pagar|floatformat:2 }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="10" class="text-center py-5 text-muted">
+                                <i class="fas fa-info-circle me-1"></i> No se han generado registros de pago para este periodo.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    {% if nominas %}
+                    <tfoot class="table-light fw-bold">
+                        <tr>
+                            <td colspan="5" class="text-end">TOTALES GENERALES:</td>
+                            <td class="text-end text-primary">C$ {{ totales.total_devengado|floatformat:2 }}</td>
+                            <td class="text-end text-danger">C$ {{ totales.total_inss|floatformat:2 }}</td>
+                            <td class="text-end text-danger">C$ {{ totales.total_ir|floatformat:2 }}</td>
+                            <td class="text-end text-danger">C$ {{ totales.total_otras_ded|default:0|floatformat:2 }}</td>
+                            <td class="text-end text-success fs-6">C$ {{ totales.total_neto|floatformat:2 }}</td>
+                        </tr>
+                    </tfoot>
+                    {% endif %}
+                </table>
+            </div>
+        </div>
+        <div class="card-footer bg-light small">
+            <p class="mb-0"><strong>Nota:</strong> Esta nómina muestra únicamente a los empleados que ya tienen su planilla procesada para el mes seleccionado.</p>
+        </div>
+    </div>
+</div>
+
+<style>
+    @media print {
+        .no-print { display: none !important; }
+        .container-fluid { width: 100%; margin: 0; padding: 0; }
+        .card { border: none; box-shadow: none; }
+        .table { font-size: 10px !important; }
+        .table-dark { background-color: #333 !important; color: white !important; }
+    }
+</style>
+{% endblock %}

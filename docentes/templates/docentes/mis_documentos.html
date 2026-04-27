@@ -1,0 +1,142 @@
+{% extends 'principal/base.html' %}
+{% block page_title %}Mis Documentos{% endblock %}
+{% block title %}Mis Documentos{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-gray-800">📂 Repositorio Digital</h2>
+            <p class="text-muted mb-0">Documentos de: <strong>{{ docente.nombres }} {{ docente.apellidos }}</strong></p>
+        </div>
+        
+        <div class="d-flex gap-2">
+            {% if perms.docentes.crear_docdocentes %}
+            <button type="button" class="btn btn-success shadow-sm" data-bs-toggle="modal" data-bs-target="#uploadModal">
+                <i class="fas fa-cloud-upload-alt me-2"></i> Subir Archivo
+            </button>
+            {%endif%}
+
+            <a href="{% url 'docentes_home' %}" class="btn btn-outline-danger">
+                <i class="fas fa-sign-out-alt me-2"></i> Salir
+            </a>
+        </div>
+    </div>
+
+    <div class="card shadow border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light text-uppercase small fw-bold text-muted">
+                        <tr>
+                            <th class="py-3 ps-4">Nombre del Documento</th>
+                            <th class="py-3">Fecha de Archivo</th>
+                            <th class="py-3 text-end pe-4">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for doc in documentos %}
+                        <tr>
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="p-2 rounded me-3 
+                                        {% if '.pdf' in doc.archivo.name %}bg-danger text-danger bg-opacity-10
+                                        {% elif '.doc' in doc.archivo.name %}bg-primary text-primary bg-opacity-10
+                                        {% else %}bg-secondary text-dark bg-opacity-10{% endif %}">
+                                        
+                                        {% if '.pdf' in doc.archivo.name %}<i class="fas fa-file-pdf fa-lg"></i>
+                                        {% elif '.doc' in doc.archivo.name %}<i class="fas fa-file-word fa-lg"></i>
+                                        {% else %}<i class="fas fa-file-alt fa-lg"></i>{% endif %}
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0 fw-bold text-dark">{{ doc.nombre_documento }}</h6>
+                                        <small class="text-muted">
+                                            {% if doc.archivo.size|default:0 > 1048576 %}
+                                                {{ doc.archivo.size|filesizeformat }}
+                                            {% else %}
+                                                Documento Adjunto
+                                            {% endif %}
+                                        </small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-muted">
+                                <i class="far fa-clock me-1"></i> {{ doc.fecha_subida|date:"d M Y, h:i A" }}
+                            </td>
+                            <td class="text-end pe-4">
+                                <a href="{{ doc.archivo.url }}" target="_blank" class="btn btn-sm btn-primary shadow-sm me-1" title="Descargar">
+                                    <i class="fas fa-download"></i>
+                                </a>
+                                {% if perms.docentes.eliminar_docdocentes %}
+                                <button onclick="confirmarEliminar('{% url 'eliminar_documento' doc.id %}')" class="btn btn-sm btn-outline-danger" title="Eliminar">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                                {%endif%}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" class="text-center py-5">
+                                <div class="text-muted opacity-50 mb-3">
+                                    <i class="fas fa-folder-open fa-4x"></i>
+                                </div>
+                                <h5 class="text-muted">Repositorio Vacío</h5>
+                                <p class="small text-muted">Sube documentos o archiva actas de notas.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="uploadModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title fw-bold"><i class="fas fa-cloud-upload-alt me-2"></i>Subir Documento</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{% url 'subir_documento_manual' %}" method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Nombre del Archivo</label>
+                        <input type="text" name="nombre_documento" class="form-control" placeholder="Ej: Curriculum Vitae, Planificación..." required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Seleccionar Archivo</label>
+                        <input type="file" name="archivo" class="form-control" required>
+                        <div class="form-text">Formatos aceptados: PDF, Word, Excel, Imágenes.</div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success fw-bold">
+                        <i class="fas fa-save me-2"></i> Guardar Archivo
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function confirmarEliminar(url) {
+        Swal.fire({
+            title: '¿Eliminar Archivo?',
+            text: "Esta acción no se puede deshacer.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) window.location.href = url;
+        })
+    }
+</script>
+{% endblock %}

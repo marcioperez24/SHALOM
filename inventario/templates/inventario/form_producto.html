@@ -1,0 +1,192 @@
+{% extends "principal/base.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block page_title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0 text-gray-800 font-bold" style="font-size: 1.8rem; letter-spacing: -0.5px;">{{ titulo }}</h2>
+                <a href="{% url 'inventario:lista_productos' %}" class="btn btn-outline-secondary shadow-sm" style="border-radius: 8px;">
+                    <i class="fas fa-arrow-left mr-1"></i> Volver al Catálogo
+                </a>
+            </div>
+
+            <div class="card shadow-sm" style="border: none; border-radius: 12px;">
+                <div class="card-body p-4 p-md-5">
+                    
+                    <form method="POST" enctype="multipart/form-data" id="productoForm">
+                        {% csrf_token %}
+
+                        <!-- SECCIÓN 1: Detalles Básicos -->
+                        <h4 class="text-primary mb-3" style="font-weight: 600;"><i class="fas fa-info-circle mr-2"></i>Información Básica</h4>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                {{ form.Nombre|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.Categoria|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.PrecioVenta|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.Foto|as_crispy_field }}
+                            </div>
+                            <div class="col-12">
+                                {{ form.Descripcion|as_crispy_field }}
+                            </div>
+                            <div class="col-12 mt-2">
+                                <div class="form-check form-switch custom-switch" style="padding-left: 2.5em;">
+                                    <input class="form-check-input" type="checkbox" id="id_TieneVariantes" name="TieneVariantes" 
+                                    {% if producto.TieneVariantes %}checked{% endif %} style="width: 2em; height: 1em; margin-left: -2.5em; cursor: pointer;">
+                                    <label class="form-check-label text-md font-weight-bold ml-2" for="id_TieneVariantes" style="cursor: pointer;">
+                                        Este producto tiene variantes (Ej: Diferentes tallas o colores separados)
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SECCIÓN 2: Inventario Único (Oculto si hay variantes) -->
+                        <div id="seccion_stock_unico" class="bg-gray-50 p-4 rounded-lg mb-4" style="border: 1px dashed #ced4da; {% if producto.TieneVariantes %}display: none;{% endif %}">
+                            <h5 class="text-secondary mb-3"><i class="fas fa-box mr-2"></i>Stock Inicial Unitario</h5>
+                            <p class="text-sm text-muted mb-3">Dado que el producto no tiene variantes, ingresa el inventario general disponible.</p>
+                            <div class="form-floating" style="max-width: 300px;">
+                                <input type="number" class="form-control" id="stockUnico" name="stock_unico" min="0" placeholder="Ej. 10" 
+                                value="{% if no_variante %}{{ unica_variante_stock }}{% else %}0{% endif %}">
+                                <label for="stockUnico">Cantidad en Stock</label>
+                            </div>
+                        </div>
+
+                        <!-- SECCIÓN 3: Variantes (Oculto si NO hay variantes) -->
+                        <div id="seccion_variantes" class="bg-gray-50 p-4 rounded-lg mb-4" style="border: 1px dashed #4f46e5; background-color:#f8faff; {% if not producto.TieneVariantes %}display: none;{% endif %}">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div>
+                                    <h5 class="text-primary mb-1" style="color: #4f46e5 !important;"><i class="fas fa-tags mr-2"></i>Gestión de Variantes</h5>
+                                    <p class="text-sm text-muted mb-0">Agrega las diferentes tallas y colores que ofreces, junto con su stock independiente.</p>
+                                </div>
+                                {% if not producto %}
+                                    <button type="button" id="btnAgregarVariante" class="btn btn-sm btn-outline-primary shadow-sm" style="border-radius: 6px;">
+                                        <i class="fas fa-plus mr-1"></i> Añadir Fila
+                                    </button>
+                                {% endif %}
+                            </div>
+
+                            {% if producto %}
+                                <div class="alert alert-info py-2" role="alert">
+                                    <i class="fas fa-info-circle mr-2"></i>
+                                    Al editar, solo puedes modificar el Stock. Para añadir nuevas Variantes, elimina el producto y vuélvelo a crear.
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-bordered bg-white rounded shadow-sm">
+                                        <thead class="bg-light text-muted text-uppercase text-xs" style="letter-spacing: 0.5px;">
+                                            <tr>
+                                                <th>Talla</th>
+                                                <th>Color</th>
+                                                <th width="150px">Stock Disp.</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for var in variantes %}
+                                            <tr>
+                                                <td class="align-middle">{{ var.Talla|default:"N/A" }}</td>
+                                                <td class="align-middle">{{ var.Color|default:"N/A" }}</td>
+                                                <td>
+                                                    <input type="number" class="form-control form-control-sm" name="var_stock_{{ var.VarianteID }}" min="0" value="{{ var.StockActual }}">
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div id="variantesContainer">
+                                    <!-- Las filas de variantes se inyectarán aquí -->
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- ACTIVACIÓN FINAL -->
+                        <div class="form-check mt-4 mb-4">
+                            {{ form.Activo|as_crispy_field }}
+                        </div>
+
+                        <hr>
+                        <div class="d-flex justify-content-end mt-4">
+                            <button type="submit" class="btn btn-success px-4 py-2 font-weight-bold shadow-sm" style="border-radius: 8px; font-size: 1.1rem;">
+                                <i class="fas fa-save mr-2"></i> Guardar Producto
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const checkVariantes = document.getElementById('id_TieneVariantes');
+    const secUnico = document.getElementById('seccion_stock_unico');
+    const secVariantes = document.getElementById('seccion_variantes');
+    const varsContainer = document.getElementById('variantesContainer');
+    const btnAgregar = document.getElementById('btnAgregarVariante');
+
+    function toggleSections() {
+        if (checkVariantes.checked) {
+            secUnico.style.display = 'none';
+            secVariantes.style.display = 'block';
+            if(varsContainer && varsContainer.children.length === 0) {
+                agregarFilaVariante(); // Al menos una si se activa
+            }
+        } else {
+            secUnico.style.display = 'block';
+            secVariantes.style.display = 'none';
+        }
+    }
+
+    checkVariantes.addEventListener('change', toggleSections);
+
+    if (btnAgregar) {
+        btnAgregar.addEventListener('click', agregarFilaVariante);
+    }
+
+    function agregarFilaVariante() {
+        const row = document.createElement('div');
+        row.className = 'row g-2 mb-2 align-items-center variante-row';
+        row.innerHTML = `
+            <div class="col-sm-4">
+                <input type="text" class="form-control" name="talla[]" placeholder="Talla (Ej. S, M, L o 38, 40)">
+            </div>
+            <div class="col-sm-4">
+                <input type="text" class="form-control" name="color[]" placeholder="Color (Ej. Azul)">
+            </div>
+            <div class="col-sm-3">
+                <input type="number" class="form-control" name="stock[]" placeholder="Stock" min="0" required>
+            </div>
+            <div class="col-sm-1 text-center">
+                <button type="button" class="btn btn-outline-danger btn-sm rounded-circle d-flex align-items-center justify-content-center btn-eliminar-var" style="width: 32px; height: 32px; padding:0;">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        `;
+        varsContainer.appendChild(row);
+
+        // Bind delete
+        row.querySelector('.btn-eliminar-var').addEventListener('click', function() {
+            if(varsContainer.children.length > 1) {
+                row.remove();
+            } else {
+                alert("Debes tener al menos una variante.");
+            }
+        });
+    }
+
+    // Inicializar
+    toggleSections();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,262 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finiquito Laboral - {{ empleado.nombres }} {{ empleado.apellidos }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Calibri', 'Arial', sans-serif;
+            font-size: 12pt;
+            line-height: 1.6;
+            color: #1a1a1a;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+
+        .print-page {
+            position: relative;
+            width: 210mm;
+            min-height: 297mm;
+            padding: 2cm;
+            margin: 20px auto;
+            background: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            opacity: 0.05;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #003366;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header h1 {
+            font-size: 22pt;
+            font-weight: bold;
+            color: #003366;
+            margin-bottom: 5px;
+        }
+
+        .header h2 {
+            font-size: 14pt;
+            color: #555;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .legal-text {
+            text-align: justify;
+            margin-bottom: 25px;
+        }
+
+        .info-box {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 30px;
+        }
+
+        .table-liquidation {
+            width: 100%;
+            margin-bottom: 30px;
+            border-collapse: collapse;
+        }
+
+        .table-liquidation th {
+            background-color: #003366;
+            color: white;
+            padding: 10px;
+            text-align: left;
+        }
+
+        .table-liquidation td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .table-liquidation .total-row {
+            background-color: #f1f1f1;
+            font-weight: bold;
+            font-size: 14pt;
+        }
+
+        .signatures {
+            margin-top: 50px;
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+        }
+
+        .sig-box {
+            width: 40%;
+        }
+
+        .sig-line {
+            border-top: 1px solid #000;
+            margin-top: 60px;
+            padding-top: 5px;
+        }
+
+        .no-print-zone {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        @media print {
+            body { background-color: white; }
+            .print-page { margin: 0; box-shadow: none; width: 100%; padding: 1.5cm; }
+            .no-print-zone { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="no-print-zone">
+        <button onclick="window.print()" class="btn btn-primary shadow">
+            <i class="fas fa-print me-2"></i>Imprimir Finiquito
+        </button>
+
+        {% if not liquidacion.contabilizado %}
+        <a href="{% url 'recursos_humanos:contabilizar_liquidacion' empleado.pk %}" class="btn btn-success shadow ms-2">
+            <i class="fas fa-file-invoice-dollar me-2"></i>Contabilizar en Caja
+        </a>
+        {% else %}
+        <button class="btn btn-outline-success shadow ms-2" disabled>
+            <i class="fas fa-check-circle me-2"></i>Contabilizado
+        </button>
+        {% endif %}
+
+        <a href="{% url 'recursos_humanos:expediente_empleado' empleado.pk %}" class="btn btn-secondary shadow ms-2">
+            <i class="fas fa-arrow-left me-2"></i>Volver
+        </a>
+    </div>
+
+    <div class="print-page">
+        <img src="{% static 'principal/img/Shalom.png' %}" class="watermark" alt="Watermark">
+
+        <div class="header">
+            <h1>COLEGIO CRISTIANO SHALOM</h1>
+            <h2>Constancia de Liquidación y Finiquito Laboral</h2>
+        </div>
+
+        <div class="content">
+            <p class="legal-text">
+                El presente documento hace constar y certifica el cálculo de los derechos laborales irrenunciables e indemnizaciones correspondientes (según el Código del Trabajo de la República de Nicaragua) a favor del Sr/a. <strong class="text-uppercase">{{ empleado.nombres }} {{ empleado.apellidos }}</strong>, quien se desempeñó en el cargo de <strong>{{ empleado.cargo }}</strong>. 
+                Cesa sus funciones con fecha de salida efectiva el día <strong>{{ liquidacion.fecha_salida|date:"d \d\e F \d\e\l Y" }}</strong> 
+                por motivo de <strong>{{ liquidacion.get_motivo_display }}</strong>.
+            </p>
+
+            <div class="info-box">
+                <div class="row">
+                    <div class="col-6">
+                        <p class="mb-1"><strong>Nº Cédula:</strong> {{ empleado.cedula }}</p>
+                        <p class="mb-1"><strong>Nº INSS:</strong> {{ empleado.numero_inss|default:"N/A" }}</p>
+                        <p class="mb-1"><strong>Fecha de Ingreso:</strong> {{ empleado.fecha_contratacion|date:"d/m/Y" }}</p>
+                    </div>
+                    <div class="col-6 text-end">
+                        <p class="mb-1"><strong>Fecha de Salida:</strong> {{ liquidacion.fecha_salida|date:"d/m/Y" }}</p>
+                        <p class="mb-1"><strong>Salario de Cálculo:</strong> C$ {{ liquidacion.salario_base_calculo|floatformat:2 }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <h5 class="fw-bold mb-3" style="color: #003366;">DETALLE DE PRESTACIONES (MITRAB)</h5>
+            <table class="table-liquidation">
+                <thead>
+                    <tr>
+                        <th>Concepto Legal</th>
+                        <th class="text-end">Monto (C$)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <strong>1. Treceavo Mes (Aguinaldo) Proporcional</strong><br>
+                            <small class="text-muted">Art. 93 Código del Trabajo</small>
+                        </td>
+                        <td class="text-end">C$ {{ liquidacion.aguinaldo_proporcional|floatformat:2 }}</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>2. Vacaciones No Gozadas Proporcionales</strong><br>
+                            <small class="text-muted">Art. 76 Código del Trabajo</small>
+                        </td>
+                        <td class="text-end">C$ {{ liquidacion.vacaciones_proporcionales|floatformat:2 }}</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>3. Indemnización por Años de Servicio (Antigüedad)</strong><br>
+                            <small class="text-muted">
+                                {% if liquidacion.indemnizacion_antiguedad > 0 %}
+                                Art. 45 Código del Trabajo
+                                {% else %}
+                                Art. 44 (Nula por Renuncia sin Preaviso)
+                                {% endif %}
+                            </small>
+                        </td>
+                        <td class="text-end {% if liquidacion.indemnizacion_antiguedad == 0 %}text-muted{% endif %}">
+                            C$ {{ liquidacion.indemnizacion_antiguedad|floatformat:2 }}
+                        </td>
+                    </tr>
+                    <tr class="total-row">
+                        <td class="text-end">GRAN TOTAL NETO A RECIBIR:</td>
+                        <td class="text-end">C$ {{ liquidacion.monto_total_liquidado|floatformat:2 }}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <p class="legal-text small text-muted" style="font-style: italic; border-left: 3px solid #003366; padding-left: 15px;">
+                Con la firma del presente documento, el trabajador reconoce haber recibido a su entera satisfacción la cantidad arriba descrita, otorgando al COLEGIO CRISTIANO SHALOM el más amplio finiquito de las obligaciones laborales, declarando que no se le adeuda suma alguna por ningún concepto derivado de la relación laboral.
+            </p>
+
+            <div class="signatures">
+                <div class="sig-box">
+                    <div class="sig-line">
+                        <strong>{{ empleado.nombres }} {{ empleado.apellidos }}</strong><br>
+                        Recibí Conforme (Trabajador)
+                    </div>
+                </div>
+                <div class="sig-box">
+                    <div class="sig-line">
+                        <strong>RECURSOS HUMANOS</strong><br>
+                        Colegio Cristiano Shalom
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-5 text-muted" style="font-size: 9pt;">
+                Documento emitido el {{ hoy|date:"d/m/Y" }} - Sistema de Gestión Escolar SHALOM
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

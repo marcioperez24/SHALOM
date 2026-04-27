@@ -1,0 +1,265 @@
+{% extends 'principal/base.html' %}
+{% load static %}
+{% block page_title %}
+Gestión de Facturación
+{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>{{ titulo }}</h2>
+        <div class="btn-group" role="group">
+            {% if perms.facturacion.crear_arqueos %}
+            <!-- El botón debe tener un ID único para JavaScript -->
+            <button id="toggleArqueoBtn" class="btn {% if arqueo_activo %}btn-danger{% else %}btn-success{% endif %}"
+                    data-arqueo-activo="{% if arqueo_activo %}true{% else %}false{% endif %}">
+                {% if arqueo_activo %}Cerrar Arqueo{% else %}Iniciar Arqueo{% endif %}
+            </button>
+            {% endif %}
+            {% if perms.facturacion.crear_facturas %}
+            <a href="{% url 'facturacion:crear_factura' %}" class="btn btn-primary">Generar Factura</a>
+            {% endif %}
+        </div>
+    </div>
+    <hr>
+    
+    <!-- Aviso de Arqueo Activo -->
+    {% if arqueo_activo %}
+    <div id="arqueoStatus" class="alert alert-success text-center" role="alert">
+        **Arqueo ACTIVO** desde el inicio de tu sesión de hoy.
+    </div>
+    {% else %}
+    <div id="arqueoStatus" class="alert alert-danger text-center" role="alert">
+        **Arqueo INACTIVO**. No se pueden registrar pagos sin iniciar uno.
+    </div>
+    {% endif %}
+
+    <!-- Formulario de Búsqueda (Enviará la consulta al servidor) -->
+    <form method="GET" action="." class="mb-4">
+        <div class="input-group">
+            <!-- El 'name="q"' es crucial para que Django lo reciba como request.GET.get('q') -->
+            <input type="text" name="q" id="searchInput" class="form-control" 
+                   placeholder="Buscar por estudiante, # de factura o estado en todas las páginas..." 
+                   value="{{ query|default:'' }}">
+            <button class="btn btn-primary" type="submit" id="searchButton">
+                <i class="fa fa-search"></i> Buscar
+            </button>
+            <!-- Botón para limpiar la búsqueda -->
+            {% if query %}
+            <a href="{% url 'facturacion:lista_facturas' %}" class="btn btn-secondary">
+                Limpiar
+            </a>
+            {% endif %}
+        </div>
+    </form>
+    <!-- Fin Formulario de Búsqueda -->
+
+    <div class="card p-4 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover" id="facturasTable">
+                <thead class="table-dark">
+                    <tr>
+                        <th># Factura</th>
+                        <th>Estudiante</th>
+                        <th>Fecha</th>
+                        <th>Total</th>
+                        <th>Saldo</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for factura in facturas %}
+                    <tr class="factura-row" data-estudiante="{{ factura.EstudianteID.NombreCompleto }}" data-facturaid="{{ factura.FacturaID }}" data-estado="{{ factura.Estado }}">
+                        <td>{{ factura.FacturaID }}</td>
+                        <td>{{ factura.EstudianteID.NombreCompleto }}</td>
+                        <td>{{ factura.Fecha|date:"Y-m-d" }}</td>
+                        <td>{{ factura.Moneda}}{{ factura.Total|floatformat:2 }}</td>
+                        <td class="{% if factura.Saldo > 0 %}text-danger{% else %}text-success{% endif %}">
+                            {{ factura.Moneda}}{{ factura.Saldo|floatformat:2 }} 
+                        </td>
+                        <td>
+                            <span class="badge {% if factura.Estado == 'Pagado' %}bg-success{% elif factura.Estado == 'Pendiente' %}bg-warning{% elif factura.Estado == 'Parcialmente Pagado' %}bg-warning{% else %}bg-danger{% endif %}">
+                                {{ factura.Estado }}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="{% url 'facturacion:detalle_factura' factura.FacturaID %}" class="btn btn-sm btn-info">Ver Detalles</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center">No hay facturas que coincidan con la búsqueda.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {# INICIO DE LA SECCIÓN DE PAGINACIÓN (NUEVO ESTILO) #}
+        {% if facturas.has_other_pages %}
+        <div class="d-flex flex-column align-items-center mt-3">
+            {% with query_param=query|default:'' %}
+            
+            <div class="btn-group mb-2" role="group" aria-label="Controles de Paginación">
+                
+                {# Botón Anterior #}
+                <a href="{% if facturas.has_previous %}?page={{ facturas.previous_page_number }}{% if query_param %}&q={{ query_param }}{% endif %}{% else %}#{% endif %}" 
+                   class="btn btn-sm btn-light border" 
+                   {% if not facturas.has_previous %}disabled{% endif %}>
+                    Anterior
+                </a>
+
+                {# Indicador de Página Actual #}
+                <span class="btn btn-sm btn-primary">
+                    Página {{ facturas.number }} de {{ facturas.paginator.num_pages }}
+                </span>
+
+                {# Botón Siguiente #}
+                <a href="{% if facturas.has_next %}?page={{ facturas.next_page_number }}{% if query_param %}&q={{ query_param }}{% endif %}{% else %}#{% endif %}" 
+                   class="btn btn-sm btn-light border" 
+                   {% if not facturas.has_next %}disabled{% endif %}>
+                    Siguiente
+                </a>
+                
+                {# Botón Última Página #}
+                <a href="{% if facturas.has_next %}?page={{ facturas.paginator.num_pages }}{% if query_param %}&q={{ query_param }}{% endif %}{% else %}#{% endif %}" 
+                   class="btn btn-sm btn-primary" 
+                   {% if not facturas.has_next %}disabled{% endif %}>
+                    Última
+                </a>
+            </div>
+
+            {# Indicador de Rango de Registros #}
+            <div class="text-center text-muted small">
+                Mostrando {{ facturas.start_index }} - {{ facturas.end_index }} de {{ facturas.paginator.count }} facturas.
+            </div>
+            
+            {% endwith %}
+        </div>
+        {% endif %}
+        {# FIN DE LA SECCIÓN DE PAGINACIÓN #}
+
+    </div>
+</div>
+
+{# Modal y Script de JavaScript para Arqueo - (Se mantiene el reemplazo de alert/confirm) #}
+<!-- Modal de Confirmación y Alerta (Reemplazo de alert/confirm) -->
+<div class="modal fade" id="customModal" tabindex="-1" aria-labelledby="customModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="customModalLabel">Confirmación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="customModalBody">
+                <!-- Contenido del mensaje -->
+            </div>
+            <div class="modal-footer" id="customModalFooter">
+                <!-- Botones se inyectarán aquí -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Función genérica para mostrar el modal de Bootstrap
+    function showModal(title, body, type, onConfirm) {
+        const modal = new bootstrap.Modal(document.getElementById('customModal'));
+        document.getElementById('customModalLabel').textContent = title;
+        document.getElementById('customModalBody').innerHTML = body;
+        
+        const footer = document.getElementById('customModalFooter');
+        footer.innerHTML = ''; // Limpiar botones anteriores
+
+        const closeButton = document.createElement('button');
+        closeButton.className = 'btn btn-secondary';
+        closeButton.setAttribute('data-bs-dismiss', 'modal');
+        closeButton.textContent = 'Cerrar';
+        footer.appendChild(closeButton);
+
+        if (type === 'confirm') {
+            const confirmButton = document.createElement('button');
+            confirmButton.className = 'btn btn-primary';
+            confirmButton.textContent = 'Confirmar';
+            confirmButton.addEventListener('click', () => {
+                modal.hide();
+                // Ejecutamos la función de confirmación que realiza el fetch
+                onConfirm(); 
+            });
+            footer.appendChild(confirmButton);
+        }
+
+        modal.show();
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggleArqueoBtn = document.getElementById('toggleArqueoBtn');
+        // Usamos el token directamente de un elemento hidden que Django inyecta
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value; 
+
+        if (toggleArqueoBtn) {
+            toggleArqueoBtn.addEventListener('click', function() {
+                const arqueoActivo = this.getAttribute('data-arqueo-activo') === 'true';
+                const action = arqueoActivo ? 'cerrar' : 'iniciar';
+                const message = arqueoActivo 
+                    ? '¿Estás seguro de que quieres cerrar el arqueo actual?' 
+                    : '¿Estás seguro de que quieres iniciar un nuevo arqueo?';
+
+                showModal('Confirmación de Arqueo', message, 'confirm', () => {
+                    // Muestra un estado de carga mientras se ejecuta el fetch
+                    toggleArqueoBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Procesando...';
+                    toggleArqueoBtn.disabled = true;
+
+                    fetch(`/facturacion/toggle_arqueo/`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': csrfToken 
+                        },
+                        body: JSON.stringify({ action: action })
+                    })
+                    .then(response => {
+                        // Verificamos si la respuesta HTTP es exitosa (código 200-299)
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            // Recarga Inmediata para actualizar la vista.
+                            window.location.reload(); 
+                        } else {
+                            // Si el servidor responde con JSON pero success: false
+                            showModal('Error', 'Error: ' + data.error, 'alert');
+                            console.error('Error del servidor:', data.error);
+                            // Habilitar botón si falla sin recargar
+                            toggleArqueoBtn.innerHTML = arqueoActivo ? 'Cerrar Arqueo' : 'Iniciar Arqueo';
+                            toggleArqueoBtn.disabled = false;
+                        }
+                    })
+                    .catch(error => {
+                        // Manejo de errores de red o JSON inválido
+                        console.error('Error de FETCH:', error);
+                        showModal('Error Crítico', `Ocurrió un error de red o de proceso. Por favor, recarga la página manualmente. Detalle: ${error.message}`, 'alert');
+                        // Habilitar botón si falla sin recargar
+                        toggleArqueoBtn.innerHTML = arqueoActivo ? 'Cerrar Arqueo' : 'Iniciar Arqueo';
+                        toggleArqueoBtn.disabled = false;
+                    });
+                });
+            });
+        }
+        
+        // Asegúrate de que el token CSRF esté disponible en el script
+        const csrfTokenElement = document.createElement('input');
+        csrfTokenElement.type = 'hidden';
+        csrfTokenElement.name = 'csrfmiddlewaretoken';
+        csrfTokenElement.value = '{{ csrf_token }}';
+        // Agregamos el elemento al formulario o al body si aún no está
+        if (!document.querySelector('[name=csrfmiddlewaretoken]')) {
+             document.body.appendChild(csrfTokenElement);
+        }
+    });
+</script>
+{% endblock %}

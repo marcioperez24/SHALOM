@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ titulo }}</title>
+    <!-- Incluir Bootstrap para un diseño básico -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- CSS personalizado para la impresión -->
+    <style>
+        @media print {
+            body {
+                font-family: Arial, sans-serif;
+                margin: 0;
+                padding: 0;
+            }
+            .container {
+                width: 100%;
+                margin: 0;
+                padding: 20px;
+            }
+            .no-print {
+                display: none;
+            }
+            .card {
+                border: 1px solid #ccc;
+                margin-bottom: 20px;
+                page-break-inside: avoid;
+            }
+        }
+        .container {
+            max-width: 900px;
+        }
+    </style>
+</head>
+<body onload="window.print()">
+    <div class="container mt-5">
+        <h1 class="mb-4">{{ titulo }}</h1>
+        <hr>
+
+        <!-- Información Personal -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Datos Personales</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <strong>Código MINED:</strong> {{ matricula.EstudianteID.Codigo_MINED|default:"N/A" }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <strong>Nombre Completo:</strong> {{ matricula.EstudianteID.NombreCompleto }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <strong>Género:</strong> {{ matricula.EstudianteID.Genero }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <strong>Fecha de Nacimiento:</strong> {{ matricula.EstudianteID.FechaNacimiento }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <strong>Edad:</strong> {{ matricula.EstudianteID.Edad }}
+                    </div>
+                    <div class="col-md-12 mb-3">
+                        <strong>Dirección:</strong> {{ matricula.EstudianteID.Direccion }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información Familiar -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">Datos Familiares</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <!-- Datos de la Madre -->
+                    <div class="col-md-6">
+                        <strong>Nombre de la Madre:</strong> {{ matricula.EstudianteID.NombreMadre }}<br>
+                        <strong>Cédula:</strong> {{ matricula.EstudianteID.CedulaMadre|default:"N/A" }}<br>
+                        <strong>Teléfono:</strong> {{ matricula.EstudianteID.TelefonoMadre }}<br>
+                        <strong>Ocupación:</strong> {{ matricula.EstudianteID.OcupacionMadre }}
+                    </div>
+                    <!-- Datos del Padre -->
+                    <div class="col-md-6">
+                        <strong>Nombre del Padre:</strong> {{ matricula.EstudianteID.NombrePadre }}<br>
+                        <strong>Cédula:</strong> {{ matricula.EstudianteID.CedulaPadre|default:"N/A" }}<br>
+                        <strong>Teléfono:</strong> {{ matricula.EstudianteID.TelefonoPadre }}<br>
+                        <strong>Ocupación:</strong> {{ matricula.EstudianteID.OcupacionPadre }}
+                    </div>
+                    <!-- Datos del Tutor (si existe) -->
+                    {% if matricula.EstudianteID.NombreTutor %}
+                    <div class="col-md-12 mt-4">
+                        <hr>
+                        <strong>Nombre del Tutor:</strong> {{ matricula.EstudianteID.NombreTutor }}<br>
+                        <strong>Cédula del Tutor:</strong> {{ matricula.EstudianteID.CedulaTutor|default:"N/A" }}<br>
+                        <strong>Teléfono del Tutor:</strong> {{ matricula.EstudianteID.TelefonoTutor|default:"N/A" }}<br>
+                        <strong>Ocupación del Tutor:</strong> {{ matricula.EstudianteID.OcupacionTutor|default:"N/A" }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Información de Matrícula -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">Datos de Matrícula</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <strong>Nivel:</strong> {{ matricula.NivelID.NombreNivel }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <strong>Sección:</strong> {{ matricula.SeccionID.NombreSeccion }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <strong>Turno:</strong> {{ matricula.TurnoID.NombreTurno }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <strong>Modalidad:</strong> {{ matricula.ModalidadID.NombreModalidad }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <strong>Fecha de Matrícula:</strong> {{ matricula.FechaMatricula }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <strong>Año de Matrícula:</strong> {{ matricula.AñoMatricula }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información de Inscripciones -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">Datos de Inscripciones</h5>
+            </div>
+            <div class="card-body">
+                {% if inscripciones %}
+                <div class="table-responsive">
+                    <table class="table table-bordered table-sm">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Materia</th>
+                                <th>Nivel</th>
+                                <th>Sección</th>
+                                <th>Modalidad</th>
+                                <th>Turno</th>
+                                <th>Año</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for inscripcion in inscripciones %}
+                            <tr>
+                                <td>{{ inscripcion.MateriaID.NombreMateria }}</td>
+                                <td>{{ inscripcion.NivelID.NombreNivel }}</td>
+                                <td>{{ inscripcion.SeccionID.NombreSeccion }}</td>
+                                <td>{{ inscripcion.ModalidadID.NombreModalidad }}</td>
+                                <td>{{ inscripcion.TurnoID.NombreTurno }}</td>
+                                <td>{{ inscripcion.AñoMatricula }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-warning" role="alert">
+                    No se encontraron inscripciones para este estudiante.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="text-center mt-5 no-print">
+            <button class="btn btn-secondary" onclick="window.close()">Cerrar Ventana</button>
+        </div>
+    </div>
+
+    <!-- Script de Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

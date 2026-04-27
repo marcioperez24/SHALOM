@@ -1,0 +1,246 @@
+{% extends 'principal/base.html' %}
+{% load static %}
+
+{% block page_title %}
+Informe de Cuentas por Cobrar (Saldos Pendientes)
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+    .card.bg-danger-soft { background-color: #f8d7da !important; color: #721c24 !important; border-color: #f5c6cb; }
+    .monto-display { font-size: 2rem; font-weight: 700; word-break: break-all; }
+    .table-detail th { background-color: #3f51b5 !important; color: white; }
+    .card.animated-card { transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; }
+    .card.animated-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2); }
+    /* Estilo para el botón de imprimir */
+    .btn-imprimir-reporte {
+        background-color: #007bff;
+        border-color: #007bff;
+        color: white;
+    }
+    .btn-imprimir-reporte:hover {
+        background-color: #0056b3;
+        border-color: #0056b3;
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Informe de Saldos Pendientes por Concepto</h2>
+    <p class="lead">Consolidado de todas las cuentas por cobrar segmentadas por el servicio facturado.</p>
+    <hr>
+
+    <!-- 1. FILTROS DEL INFORME -->
+    <div class="card shadow-lg mb-4">
+        <div class="card-header bg-danger text-white">
+            <h5 class="mb-0"><i class="fas fa-search-dollar me-2"></i> Filtros de Deuda Pendiente</h5>
+        </div>
+        <div class="card-body">
+            <form id="filtro-deuda-form" method="GET" action="{% url 'facturacion:consulta_saldos_pendientes' %}">
+                <div class="row g-3 align-items-end">
+                    
+                    <div class="col-md-3 col-sm-6">
+                        <label for="id_anio_lectivo" class="form-label">Año Lectivo</label>
+                        <select id="id_anio_lectivo" name="anio_lectivo" class="form-select">
+                            <option value="">Seleccione Año</option>
+                            {% for anio in anios_disponibles %}
+                            <option value="{{ anio }}" {% if anio|stringformat:"s" == selected_anio|default_if_none:'' %}selected{% endif %}>{{ anio }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-md-3 col-sm-6">
+                        <label for="id_nivel_id" class="form-label">Nivel de Estudio</label>
+                        <select id="id_nivel_id" name="nivel_id" class="form-select">
+                            <option value="">Seleccione Nivel</option>
+                            {% for nivel in niveles %}
+                            <option value="{{ nivel.NivelID }}" {% if nivel.NivelID|stringformat:"s" == selected_nivel_id|default_if_none:'' %}selected{% endif %}>{{ nivel.NombreNivel }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-md-3 col-sm-6">
+                        <label for="id_servicio_id" class="form-label">Concepto de Servicio</label>
+                        <select id="id_servicio_id" name="servicio_id" class="form-select" required>
+                            <option value="">Seleccione Concepto</option>
+                            <!-- Los servicios se cargarán aquí vía AJAX -->
+                            {% if servicios_seleccionados %}
+                                {% for servicio in servicios_seleccionados %}
+                                <option value="{{ servicio.ServicioID }}" {% if servicio.ServicioID|stringformat:"s" == selected_servicio_id|default_if_none:'' %}selected{% endif %}>{{ servicio.NombreServicio }}</option>
+                                {% endfor %}
+                            {% endif %}
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-3 d-flex gap-2">
+                        <button type="submit" class="btn btn-danger flex-grow-1">
+                            <i class="fas fa-search me-2"></i> Generar Reporte
+                        </button>
+                        {% if reporte_saldos %}
+                        <button type="button" onclick="imprimirReporte()" class="btn btn-imprimir-reporte">
+                            <i class="fas fa-print"></i>
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 2. RESUMEN GLOBAL (Si hay resultados) -->
+    {% if reporte_saldos %}
+    <div class="row g-4 mb-5">
+        <div class="col-lg-6 col-md-12">
+            <div class="card bg-danger-soft shadow-lg h-100 animated-card">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-hand-holding-usd me-2"></i> SALDO TOTAL PENDIENTE</h5>
+                    <p class="monto-display text-danger mb-0">
+                        C$ {{ total_saldo_global|floatformat:2 }}
+                    </p>
+                    <p class="card-text border-top pt-2 mt-2">
+                        Deuda pendiente de cobro para el concepto: **{{ selected_servicio_nombre }}** (Nivel: {{ selected_nivel_nombre }})
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 col-md-12">
+            <div class="card bg-light shadow-lg h-100 animated-card">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-file-invoice me-2"></i> Total Facturado (Bruto)</h5>
+                    <p class="monto-display text-dark mb-0">
+                        C$ {{ total_facturado_global|floatformat:2 }}
+                    </p>
+                    <p class="card-text border-top pt-2 mt-2">
+                        Monto total facturado antes de pagos y descuentos.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. DETALLE POR ESTUDIANTE -->
+    <h3>Detalle de Cuentas por Cobrar (Estudiantes)</h3>
+    <div class="table-responsive">
+        <table class="table table-hover table-bordered shadow-sm table-detail">
+            <thead>
+                <tr>
+                    <th style="width: 5%;">#</th>
+                    <th style="width: 20%;">Estudiante</th>
+                    <th style="width: 10%;">Moneda</th>
+                    <th style="width: 15%;">Concepto</th>
+                    <th class="text-end" style="width: 15%;">Facturado Bruto</th>
+                    <th class="text-end" style="width: 15%;">Pagado</th>
+                    <th class="text-end" style="width: 10%;">Descuento</th>
+                    <th class="text-end bg-danger text-white" style="width: 10%;">Saldo Pendiente</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in reporte_saldos %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ item.nombre_completo }}</td>
+                    <td>{{ item.moneda }}</td>
+                    <td>{{ item.servicio }}</td>
+                    <td class="text-end">{{ item.moneda }} {{ item.monto_servicio|floatformat:2 }}</td>
+                    <td class="text-end">{{ item.moneda }} {{ item.monto_pagado|floatformat:2 }}</td>
+                    <td class="text-end text-success">{{ item.moneda }} {{ item.monto_descuento|floatformat:2 }}</td>
+                    <td class="text-end fw-bold text-danger">{{ item.moneda }} {{ item.saldo_pendiente|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% else %}
+        {% if selected_servicio_id and not reporte_saldos %}
+            <div class="alert alert-warning mt-4" role="alert">
+                No se encontraron saldos pendientes para el concepto **{{ selected_servicio_nombre }}** en el año **{{ selected_anio }}** (Nivel: {{ selected_nivel_nombre }}).
+            </div>
+        {% else %}
+            <div class="alert alert-info mt-4" role="alert">
+                Seleccione el **Año Lectivo**, el **Nivel** y un **Concepto de Servicio** para generar el reporte de saldos pendientes.
+            </div>
+        {% endif %}
+    {% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const anioSelect = document.getElementById('id_anio_lectivo');
+        const nivelSelect = document.getElementById('id_nivel_id');
+        const servicioSelect = document.getElementById('id_servicio_id');
+        const filtroForm = document.getElementById('filtro-deuda-form');
+
+
+        // --- Lógica AJAX para Servicios Dependientes ---
+        function cargarServicios() {
+            const anio = anioSelect.value;
+            const nivelId = nivelSelect.value;
+            
+            if (!anio || !nivelId) {
+                servicioSelect.innerHTML = '<option value="">Seleccione Concepto</option>';
+                return;
+            }
+
+            servicioSelect.innerHTML = '<option value="">Cargando servicios...</option>';
+            const url = `/facturacion/api/servicios_por_nivel_y_anio/?nivel_id=${nivelId}&anio=${anio}`;
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    const selectedId = '{{ selected_servicio_id|default_if_none:"" }}';
+                    let options = '<option value="">Seleccione Concepto</option>';
+                    data.forEach(servicio => {
+                        const isSelected = servicio.ServicioID.toString() === selectedId.toString() ? 'selected' : '';
+                        options += `<option value="${servicio.ServicioID}" ${isSelected}>${servicio.NombreServicio} (C$ ${servicio.Precio})</option>`;
+                    });
+                    servicioSelect.innerHTML = options;
+                })
+                .catch(error => {
+                    console.error('Error al cargar servicios:', error);
+                    servicioSelect.innerHTML = '<option value="">Error al cargar</option>';
+                });
+        }
+
+        anioSelect.addEventListener('change', cargarServicios);
+        nivelSelect.addEventListener('change', cargarServicios);
+
+        if ('{{ selected_servicio_id|default_if_none:"" }}' && nivelSelect.value && anioSelect.value) {
+            cargarServicios();
+        } else if (!'{{ selected_servicio_id|default_if_none:"" }}' && nivelSelect.value && anioSelect.value) {
+            cargarServicios();
+        }
+
+        // --- Lógica de Impresión ---
+        window.imprimirReporte = function() {
+            const anio = anioSelect.value;
+            const nivel = nivelSelect.value;
+            const servicio = servicioSelect.value;
+
+            if (!anio || !nivel || !servicio) {
+                // Usamos un modal o un mensaje en lugar de alert()
+                alert('Debe seleccionar Año, Nivel y Concepto para imprimir el reporte.');
+                return;
+            }
+
+            let url = "{% url 'facturacion:consulta_saldos_pendientes_imprimir' %}";
+            let params = [];
+            
+            params.push(`anio_lectivo=${anio}`);
+            params.push(`nivel_id=${nivel}`);
+            params.push(`servicio_id=${servicio}`);
+            
+            url += '?' + params.join('&');
+            
+            window.open(url, '_blank');
+        }
+    });
+</script>
+{% endblock %}

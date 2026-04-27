@@ -1,0 +1,130 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page {
+            size: letter;
+            margin: 1cm;
+            background-color: white;
+        }
+        
+        body { 
+            font-family: Helvetica, Arial, sans-serif; 
+            font-size: 10pt; 
+        }
+
+        /* ENCABEZADO */
+        .header { text-align: center; margin-bottom: 20px; }
+        .logo { width: 60px; height: auto; }
+        .title { 
+            font-weight: bold; 
+            font-size: 14pt; 
+            text-decoration: underline; 
+            margin-top: 5px; 
+            text-transform: uppercase;
+        }
+
+        /* INFO DOCENTE */
+        .info-table { width: 100%; border: 1px solid #000; margin-bottom: 15px; padding: 5px; }
+        .info-table td { border: none; padding: 3px; font-size: 9pt; }
+        
+        /* TABLA PRINCIPAL */
+        .main-table { width: 100%; border-collapse: collapse; }
+        .main-table th, .main-table td { 
+            border: 1px solid black; 
+            padding: 5px; 
+            text-align: center; 
+            vertical-align: middle; 
+        }
+        .main-table th { background-color: #f0f0f0; font-size: 9pt; font-weight: bold; }
+        .main-table td { font-size: 9pt; }
+
+        .text-left { text-align: left !important; padding-left: 5px !important; }
+
+        /* PIE DE PÁGINA */
+        .footer-container {
+            width: 100%;
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        /* ESTA TABLA ES SOLO PARA DIBUJAR LA LÍNEA */
+        .line-table {
+            width: 150px; /* <--- AQUÍ CONTROLAS EL LARGO DE LA RAYA (Hazlo más pequeño si quieres) */
+            margin: 0 auto; /* Centrar */
+            border-collapse: collapse;
+        }
+        .line-table td {
+            border-top: 0.5pt solid black; /* Línea fina */
+            height: 1px; /* Altura mínima */
+        }
+        
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <img src="{% static 'principal/img/Shalom.png' %}" class="logo">
+        <div style="font-size: 16pt; font-weight: bold; margin-top: 5px;">COLEGIO SHALOM</div>
+        <div class="title">ACTA DE CALIFICACIONES OFICIAL</div>
+        <div style="margin-top: 5px;">{{ semestre.NombreSemestre }} - {{ corte.NombreCorte }} ({{ carga.anio_lectivo }})</div>
+    </div>
+
+    <table class="info-table">
+        <tr>
+            <td style="text-align: left; width: 60%;">
+                <strong>Docente:</strong> {{ carga.docente.nombres }} {{ carga.docente.apellidos }}<br>
+                <strong>Materia:</strong> {{ carga.materia.NombreMateria }}
+            </td>
+            <td style="text-align: right; width: 40%;">
+                <strong>Nivel:</strong> {{ carga.nivel.NombreNivel }}<br>
+                <strong>Sección:</strong> "{{ carga.seccion.NombreSeccion }}"
+            </td>
+        </tr>
+    </table>
+
+    <table class="main-table">
+        <thead>
+            <tr>
+                <th style="width: 5%;">#</th>
+                <th style="width: 40%;" class="text-left">Estudiante</th>
+                <th style="width: 12%;">Nota</th>
+                <th style="width: 13%;">Nivel</th>
+                <th style="width: 30%;">Firma del Estudiante</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cal in calificaciones %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td class="text-left">{{ cal.InscripcionID.EstudianteID.NombreCompleto }}</td>
+                <td>{{ cal.NotaCuantitativa }}</td>
+                <td>{{ cal.NotaCualitativa }}</td>
+                <td>&nbsp;<br>&nbsp;</td> 
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="footer-container">
+        <br><br><br>
+
+        <table class="line-table" align="center">
+            <tr>
+                <td></td> </tr>
+        </table>
+
+        <div style="margin-top: 5px;">
+            <strong>Firma del Docente</strong><br>
+            <span style="font-size: 9pt;">{{ carga.docente.nombres }} {{ carga.docente.apellidos }}</span>
+        </div>
+        
+        <div style="font-size: 7pt; color: #999; margin-top: 10px;">
+            Documento generado el: {{ fecha_impresion|date:"d/m/Y H:i" }}
+        </div>
+    </div>
+
+</body>
+</html>

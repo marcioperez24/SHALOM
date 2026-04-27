@@ -1,0 +1,37 @@
+{% extends 'principal/base.html' %}
+{% block title %}Acceso a Documentos{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-secondary text-white text-center py-4">
+                    <h4 class="mb-0"><i class="fas fa-folder-open me-2"></i>Mis Documentos</h4>
+                    <p class="small mb-0 text-white-50">Validación de Seguridad</p>
+                </div>
+                <div class="card-body p-5">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-secondary">Ingrese su No. Cédula</label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text bg-light"><i class="fas fa-id-card"></i></span>
+                                <input type="text" name="cedula" class="form-control" placeholder="XXX-XXXXXX-XXXXX" required autofocus>
+                            </div>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-secondary btn-lg">
+                                Ver Mis Archivos <i class="fas fa-arrow-right ms-2"></i>
+                            </button>
+                        </div>
+                    </form>
+                    <div class="text-center mt-3">
+                        <a href="{% url 'docentes_home' %}" class="text-decoration-none text-muted">Volver al Inicio</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

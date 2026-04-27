@@ -1,0 +1,207 @@
+{% extends 'principal/base.html' %}
+{% load static %}
+
+{% block page_title %}
+Historial de {{ estudiante.NombreCompleto }}
+{% endblock %}
+
+{% block extra_css %}
+<!-- Font Awesome para íconos (Añadido) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+    /* --- NUEVO: Estilo para breadcrumb como botones --- */
+    .btn-breadcrumb .btn {
+        border-radius: 0; /* Esquinas cuadradas */
+    }
+    .btn-breadcrumb .btn:first-child {
+        border-top-left-radius: .25rem;
+        border-bottom-left-radius: .25rem;
+    }
+    .btn-breadcrumb .btn:last-child {
+        border-top-right-radius: .25rem;
+        border-bottom-right-radius: .25rem;
+    }
+    /* --- FIN NUEVO --- */
+
+    /* Estilos adicionales para impresión (del código original) */
+    @media print {
+        body { font-size: 9pt; } /* Letra más pequeña para historial */
+        .card { page-break-inside: avoid; } /* Evitar que las tablas se corten entre páginas */
+        .page-break { break-before: page; } /* Forzar salto de página antes de cada año (opcional) */
+        .table-responsive { overflow: visible !important; }
+        /* Asegurar colores de fondo */
+        .table-primary { background-color: #cfe2ff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact;}
+        .table-success { background-color: #d1e7dd !important; -webkit-print-color-adjust: exact; print-color-adjust: exact;}
+        .table-light { background-color: #f8f9fa !important; -webkit-print-color-adjust: exact; print-color-adjust: exact;}
+        .text-danger { color: red !important; -webkit-print-color-adjust: exact; print-color-adjust: exact;}
+        .bg-danger-subtle { background-color: #f8d7da !important; -webkit-print-color-adjust: exact; print-color-adjust: exact;}
+    }
+    @media screen {
+        .boletin-table th, .boletin-table td { white-space: nowrap; }
+    }
+</style>
+{% endblock %}
+
+
+{% block content %}
+<div class="container-fluid mt-4">
+
+    <!-- Encabezado y Navegación -->
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+        <div>
+            <h2 class="text-danger mb-0">Historial Académico</h2>
+            <!-- 
+            =============================================================
+              BREADCRUMB MODIFICADO CON ESTILO DE BOTONES
+            =============================================================
+            -->
+            <nav aria-label="breadcrumb" class="mt-2 mb-4">
+                <div class="btn-group btn-group-sm btn-breadcrumb" role="group" aria-label="Breadcrumb navigation">
+                    <a href="{% url 'Matricula:Matricula_home' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-home me-1"></i> Panel
+                    </a>
+                    <a href="{% url 'Matricula:historial_academico_filtro' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-filter me-1"></i> Filtro Historial
+                    </a>
+                    <button type="button" class="btn btn-danger active" aria-current="page" disabled> <!-- Color cambiado a 'danger' -->
+                        <i class="fas fa-history me-1"></i> Historial
+                    </button>
+                </div>
+            </nav>
+            <!-- Fin Breadcrumb Modificado -->
+        </div>
+        <div>
+            <a href="{% url 'Matricula:historial_academico_filtro' %}" class="btn btn-secondary me-2 d-print-none">
+                <i class="fas fa-arrow-left me-1"></i> Cambiar Estudiante
+            </a>
+        </div>
+    </div>
+
+    <!-- Info del Estudiante -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row align-items-center">
+                 <div class="col-md-1 text-center mb-3 mb-md-0">
+                     {% if estudiante.FotoCarnet %}
+                     <img src="{{ estudiante.FotoCarnet.url }}" alt="Foto" class="img-thumbnail rounded-circle" style="width: 80px; height: 80px; object-fit: cover;">
+                     {% else %}
+                     <i class="fas fa-user-circle fa-4x text-secondary"></i>
+                     {% endif %}
+                 </div>
+                 <div class="col-md-11">
+                     <h3 class="card-title text-danger mb-1">{{ estudiante.NombreCompleto }}</h3>
+                     <p class="card-text text-muted mb-0">
+                         <span class="fw-bold">Código:</span> {{ estudiante.Codigo_MINED|default:"N/A" }} |
+                         <span class="fw-bold">Fecha Nacimiento:</span> {{ estudiante.FechaNacimiento|date:"d/m/Y" }}
+                     </p>
+                 </div>
+             </div>
+        </div>
+    </div>
+
+    <!-- Bucle por cada Año Académico -->
+    {% for anio_data in historial_por_anio %}
+    <div class="card shadow-lg mb-5 page-break"> <!-- page-break ayuda en impresión -->
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <div>
+                <h4 class="mb-0 text-secondary">Año Lectivo {{ anio_data.anio }}</h4>
+                <small class="text-muted">{{ anio_data.nivel.NombreNivel }} - Sección {{ anio_data.seccion.NombreSeccion }}</small>
+            </div>
+            <!-- Botón para Imprimir este Año Específico -->
+            <a href="{% url 'Matricula:imprimir_historial_anio' estudiante_id=estudiante.EstudianteID anio=anio_data.anio nivel_id=anio_data.nivel.NivelID seccion_id=anio_data.seccion.SeccionID %}"
+               class="btn btn-outline-primary btn-sm d-print-none"
+               target="_blank">
+               <i class="fas fa-print me-1"></i> Imprimir Año {{ anio_data.anio }}
+            </a>
+            <!-- Fin Nuevo Botón -->
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover mb-0 boletin-table" style="font-size: 0.8rem;">
+                    <thead class="table-light text-center align-middle">
+                        <tr>
+                            <th rowspan="2" style="vertical-align: middle;">Materia</th>
+                            <th colspan="2">I Corte</th>
+                            <th colspan="2">II Corte</th>
+                            <th colspan="2" class="table-primary">I Sem.</th>
+                            <th colspan="2">III Corte</th>
+                            <th colspan="2">IV Corte</th>
+                            <th colspan="2" class="table-primary">II Sem.</th>
+                            <th colspan="2" class="table-success">Nota Final</th>
+                        </tr>
+                        <tr>
+                            <th>Nota</th><th>Equiv.</th>
+                            <th>Nota</th><th>Equiv.</th>
+                            <th class="table-primary">Nota</th><th class="table-primary">Equiv.</th>
+                            <th>Nota</th><th>Equiv.</th>
+                            <th>Nota</th><th>Equiv.</th>
+                            <th class="table-primary">Nota</th><th class="table-primary">Equiv.</th>
+                            <th class="table-success">Nota</th><th class="table-success">Equiv.</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in anio_data.boletin_data %}
+                        <tr>
+                            <td class="fw-bold">{{ item.materia.NombreMateria }}</td>
+                            <!-- C1 -->
+                            <td class="text-center {% if item.notas.c1.cuant is not None and item.notas.c1.cuant < 60 %}text-danger fw-bold{% endif %}">{{ item.notas.c1.cuant|floatformat:0|default:"-" }}</td>
+                            <td class="text-center {% if item.notas.c1.cuant is not None and item.notas.c1.cuant < 60 %}text-danger fw-bold{% endif %}">{{ item.notas.c1.cual|default:"-" }}</td>
+                            <!-- C2 -->
+                            <td class="text-center {% if item.notas.c2.cuant is not None and item.notas.c2.cuant < 60 %}text-danger fw-bold{% endif %}">{{ item.notas.c2.cuant|floatformat:0|default:"-" }}</td>
+                            <td class="text-center {% if item.notas.c2.cuant is not None and item.notas.c2.cuant < 60 %}text-danger fw-bold{% endif %}">{{ item.notas.c2.cual|default:"-" }}</td>
+                            <!-- S1 -->
+                            <td class="text-center table-primary fw-bold {% if item.notas.s1.cuant is not None and item.notas.s1.cuant < 60 %}bg-danger-subtle text-danger{% endif %}">{{ item.notas.s1.cuant|floatformat:0|default:"-" }}</td>
+                            <td class="text-center table-primary fw-bold {% if item.notas.s1.cuant is not None and item.notas.s1.cuant < 60 %}bg-danger-subtle text-danger{% endif %}">{{ item.notas.s1.cual|default:"-" }}</td>
+                            <!-- C3 -->
+                            <td class="text-center {% if item.notas.c3.cuant is not None and item.notas.c3.cuant < 60 %}text-danger fw-bold{% endif %}">{{ item.notas.c3.cuant|floatformat:0|default:"-" }}</td>
+                            <td class="text-center {% if item.notas.c3.cuant is not None and item.notas.c3.cuant < 60 %}text-danger fw-bold{% endif %}">{{ item.notas.c3.cual|default:"-" }}</td>
+                            <!-- C4 -->
+                            <td class="text-center {% if item.notas.c4.cuant is not None and item.notas.c4.cuant < 60 %}text-danger fw-bold{% endif %}">{{ item.notas.c4.cuant|floatformat:0|default:"-" }}</td>
+                            <td class="text-center {% if item.notas.c4.cuant is not None and item.notas.c4.cuant < 60 %}text-danger fw-bold{% endif %}">{{ item.notas.c4.cual|default:"-" }}</td>
+                            <!-- S2 -->
+                            <td class="text-center table-primary fw-bold {% if item.notas.s2.cuant is not None and item.notas.s2.cuant < 60 %}bg-danger-subtle text-danger{% endif %}">{{ item.notas.s2.cuant|floatformat:0|default:"-" }}</td>
+                            <td class="text-center table-primary fw-bold {% if item.notas.s2.cuant is not None and item.notas.s2.cuant < 60 %}bg-danger-subtle text-danger{% endif %}">{{ item.notas.s2.cual|default:"-" }}</td>
+                            <!-- NF -->
+                            <td class="text-center table-success fw-bold {% if item.notas.nf.cuant is not None and item.notas.nf.cuant < 60 %}bg-danger-subtle text-danger{% endif %}">{{ item.notas.nf.cuant|floatformat:0|default:"-" }}</td>
+                            <td class="text-center table-success fw-bold {% if item.notas.nf.cuant is not None and item.notas.nf.cuant < 60 %}bg-danger-subtle text-danger{% endif %}">{{ item.notas.nf.cual|default:"-" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="15" class="text-center text-danger py-4">
+                                No se encontraron materias inscritas para este año lectivo.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="alert alert-warning text-center">
+        No se encontraron matrículas registradas para este estudiante.
+    </div>
+    {% endfor %}
+</div>
+
+
+<style>
+/* Estilos adicionales para impresión */
+@media print {
+    body { font-size: 9pt; } /* Letra más pequeña para historial */
+    .card { page-break-inside: avoid; } /* Evitar que las tablas se corten entre páginas */
+    .page-break { break-before: page; } /* Forzar salto de página antes de cada año (opcional) */
+    .table-responsive { overflow: visible !important; }
+    /* Asegurar colores de fondo */
+    .table-primary { background-color: #cfe2ff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact;}
+    .table-success { background-color: #d1e7dd !important; -webkit-print-color-adjust: exact; print-color-adjust: exact;}
+    .table-light { background-color: #f8f9fa !important; -webkit-print-color-adjust: exact; print-color-adjust: exact;}
+    .text-danger { color: red !important; -webkit-print-color-adjust: exact; print-color-adjust: exact;}
+    .bg-danger-subtle { background-color: #f8d7da !important; -webkit-print-color-adjust: exact; print-color-adjust: exact;}
+}
+@media screen {
+    .boletin-table th, .boletin-table td { white-space: nowrap; }
+}
+</style>
+{% endblock %}
+

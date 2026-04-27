@@ -1,0 +1,282 @@
+/* Cards */
+.dashboard-card {
+    background-color: var(--card-bg);
+    border-radius: 10px;
+    box-shadow: 0 4px 15px var(--card-shadow);
+    padding: 25px;
+    margin-bottom: 30px;
+    /* Espacio entre tarjetas */
+}
+
+/* KPI Cards */
+.kpi-card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    /* Alinea contenido a la izquierda */
+    position: relative;
+}
+
+.kpi-card .kpi-value {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--primary-blue);
+    margin-bottom: 5px;
+    line-height: 1;
+}
+
+.kpi-card .kpi-description {
+    font-size: 0.85rem;
+    color: var(--text-color-light);
+    margin-bottom: 15px;
+}
+
+.kpi-card .kpi-icon {
+    position: absolute;
+    top: 25px;
+    /* Ajusta la posición del icono */
+    right: 25px;
+    font-size: 2.5rem;
+    color: rgba(0, 0, 0, 0.08);
+    /* Icono fantasma */
+}
+
+.kpi-card .kpi-icon.green {
+    color: rgba(var(--green-status), 0.2);
+}
+
+.kpi-card .kpi-icon.orange {
+    color: rgba(var(--orange-priority), 0.2);
+}
+
+.kpi-card .kpi-change {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--green-status);
+    /* Color para cambios positivos */
+}
+
+/* Recent Tickets Table */
+.recent-tickets-card .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--sidebar-border);
+}
+
+.recent-tickets-card .card-header h3 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.recent-tickets-card .btn-view-all {
+    background-color: transparent;
+    border: 1px solid var(--primary-blue);
+    color: var(--primary-blue);
+    padding: 8px 15px;
+    border-radius: 5px;
+    font-size: 0.85rem;
+    text-decoration: none;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.recent-tickets-card .btn-view-all:hover {
+    background-color: var(--primary-blue);
+    color: white;
+}
+
+.tickets-table {
+    width: 100%;
+    border-collapse: separate;
+    /* Permite border-spacing */
+    border-spacing: 0 10px;
+    /* Espacio entre filas */
+}
+
+.tickets-table th {
+    text-align: left;
+    padding: 10px 15px;
+    background-color: var(--table-header-bg);
+    font-weight: 600;
+    color: var(--text-color-medium);
+    font-size: 0.9rem;
+    white-space: nowrap;
+    /* Evita que el texto de la cabecera se envuelva */
+}
+
+.tickets-table th:first-child {
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+}
+
+.tickets-table th:last-child {
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+
+.tickets-table td {
+    padding: 15px;
+    background-color: var(--card-bg);
+    /* Fondo de la celda igual que la tarjeta */
+    border: none;
+    /* Eliminar bordes de celdas */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    /* Sombra ligera para cada fila */
+    font-size: 0.9rem;
+    vertical-align: middle;
+    /* Alineación vertical del contenido */
+}
+
+.tickets-table tr:not(:last-child) td {
+    margin-bottom: 10px;
+    /* Espacio entre filas con sombra */
+}
+
+.tickets-table td:first-child {
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+}
+
+.tickets-table td:last-child {
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+
+.priority-badge {
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: inline-block;
+    min-width: 60px;
+    /* Ancho mínimo para consistencia */
+    text-align: center;
+}
+
+.priority-badge.high {
+    background-color: var(--red-priority);
+    color: white;
+}
+
+.priority-badge.medium {
+    background-color: var(--orange-priority);
+    color: white;
+}
+
+.priority-badge.low {
+    background-color: #007bff;
+    color: white;
+}
+
+/* Azul para baja */
+.priority-badge.urgent {
+    background-color: #6f42c1;
+    color: white;
+}
+
+/* Púrpura para urgente */
+
+
+.status-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.status-badge .status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.status-badge.open .status-dot {
+    background-color: var(--orange-priority);
+}
+
+.status-badge.in-progress .status-dot {
+    background-color: var(--yellow-status);
+}
+
+.status-badge.resolved .status-dot {
+    background-color: var(--green-status);
+}
+
+.status-badge.closed .status-dot {
+    background-color: var(--text-color-light);
+}
+
+
+/* Knowledge Base Card */
+.knowledge-base-card .card-header {
+    margin-bottom: 20px;
+}
+
+.knowledge-base-card .card-header h3 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.knowledge-base-card .search-input {
+    width: 100%;
+    padding: 10px 15px;
+    border: 1px solid var(--sidebar-border);
+    border-radius: 8px;
+    margin-top: 15px;
+    font-size: 0.9rem;
+}
+
+.knowledge-base-card .search-input::placeholder {
+    color: var(--text-color-light);
+}
+
+.knowledge-base-card .article-list {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0;
+}
+
+.knowledge-base-card .article-list li {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--sidebar-border);
+    color: var(--text-color-dark);
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.knowledge-base-card .article-list li:last-child {
+    border-bottom: none;
+}
+
+.knowledge-base-card .article-list li .fas {
+    color: var(--primary-blue);
+    font-size: 1.1rem;
+}
+
+.knowledge-base-card .btn-explore-all {
+    background-color: transparent;
+    border: 1px solid var(--sidebar-border);
+    color: var(--text-color-medium);
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    text-decoration: none;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.knowledge-base-card .btn-explore-all:hover {
+    background-color: var(--sidebar-border);
+    color: var(--primary-blue);
+    border-color: var(--primary-blue);
+}

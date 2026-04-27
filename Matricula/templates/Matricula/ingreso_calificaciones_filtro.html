@@ -1,0 +1,148 @@
+{% extends 'principal/base.html' %}
+
+{% block page_title %}
+Ingreso de Notas | Filtros
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="display-5 text-grey">Ingreso de Notas | Filtros</h1>
+            <p class="text-muted">Seleccione el Nivel, Sección y Materia para cargar la lista de alumnos.</p>
+        </div>
+    </div>
+    
+    <div class="card shadow-lg p-4 mt-4 bg-light">
+        <form id="filtroNotasForm">
+            {% csrf_token %}
+            
+            <h5 class="mb-4 text-primary"><i class="fas fa-search me-2"></i> Criterios de Búsqueda de Alumnos</h5>
+            
+            <div class="row g-3 mb-4">
+
+                <div class="col-md-4 col-12">
+                    <label for="nivel_id" class="form-label fw-bold">Nivel/Grado:</label>
+                    <select class="form-select" id="nivel_id" name="nivel_id" required>
+                        <option value="">Seleccione Nivel</option>
+                        {% for nivel in niveles %}
+                            <option value="{{ nivel.NivelID }}">{{ nivel.NombreNivel }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="col-md-4 col-12">
+                    <label for="seccion_id" class="form-label fw-bold">Sección:</label>
+                    <select class="form-select" id="seccion_id" name="seccion_id" required disabled>
+                        <option value="">Seleccione Nivel primero</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-4 col-12">
+                    <label for="materia_id" class="form-label fw-bold">Materia:</label>
+                    <select class="form-select" id="materia_id" name="materia_id" required disabled>
+                        <option value="">Seleccione Nivel primero</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-5">
+                <button type="submit" class="btn btn-success btn-lg shadow-sm">
+                    <i class="fas fa-list-alt me-2"></i> Cargar Lista de Alumnos
+                </button>
+            </div>
+            
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // --- 1. Seleccionar todos los elementos ---
+    const filtroForm = document.getElementById('filtroNotasForm');
+    const nivelSelect = document.getElementById('nivel_id');
+    const seccionSelect = document.getElementById('seccion_id');
+    const materiaSelect = document.getElementById('materia_id');
+    
+    // URL de la API
+    const filtrosDinamicosUrl = "{% url 'Matricula:api_obtener_filtros_dinamicos' %}";
+    
+    // --- 2. Función auxiliar para rellenar selects ---
+    function cargarOpciones(selectElement, data, placeholderText) {
+        selectElement.innerHTML = `<option value="">${placeholderText}</option>`;
+        if (data && data.length > 0) {
+            data.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.id;
+                option.textContent = item.nombre;
+                selectElement.appendChild(option);
+            });
+            selectElement.disabled = false;
+        } else {
+            selectElement.disabled = true;
+        }
+    }
+
+    // --- 3. Función para cargar Secciones Y Materias (basado en Nivel) ---
+    async function actualizarCamposDinamicos() {
+        const nivelId = nivelSelect.value;
+        
+        // Limpiar y deshabilitar selects dependientes
+        cargarOpciones(seccionSelect, [], 'Cargando Secciones...');
+        cargarOpciones(materiaSelect, [], 'Cargando Materias...');
+        
+        if (!nivelId) {
+            cargarOpciones(seccionSelect, [], 'Seleccione Nivel primero');
+            cargarOpciones(materiaSelect, [], 'Seleccione Nivel primero');
+            return;
+        }
+
+        try {
+            // Llama a la API solo con el nivel
+            const response = await fetch(`${filtrosDinamicosUrl}?nivel_id=${nivelId}`);
+            if (!response.ok) throw new Error('Error en API');
+            const data = await response.json();
+            
+            // Carga AMBAS listas
+            cargarOpciones(seccionSelect, data.secciones, 'Seleccione Sección');
+            cargarOpciones(materiaSelect, data.materias, 'Seleccione Materia');
+
+        } catch (error) {
+            console.error("Error al cargar campos dinámicos:", error);
+            cargarOpciones(seccionSelect, [], 'Error al cargar secciones');
+            cargarOpciones(materiaSelect, [], 'Error al cargar materias');
+        }
+    }
+
+    // --- 4. Manejar el envío del formulario (Submit) ---
+    filtroForm.addEventListener('submit', function(e) {
+        e.preventDefault(); 
+
+        // Solo obtenemos los 3 valores
+        const nivel = nivelSelect.value;
+        const seccion = seccionSelect.value;
+        const materia = materiaSelect.value;
+
+        // Validar que todo esté seleccionado
+        if (!nivel || !seccion || !materia) {
+            alert('Por favor, complete todos los filtros antes de continuar.');
+            return;
+        }
+
+        // Construir la NUEVA URL de destino (más simple)
+        // Debe coincidir con: path('notas/ingresar/<int:nivel>/<int:seccion>/<int:materia>/', ...)
+        const targetUrl = `/matricula/notas/ingresar/${nivel}/${seccion}/${materia}/`;
+
+        // Redirigir a la página de ingreso de notas
+        window.location.href = targetUrl;
+    });
+
+    // --- 5. Asignar el listener ---
+    // Solo necesitamos escuchar el Nivel
+    nivelSelect.addEventListener('change', actualizarCamposDinamicos);
+
+});
+</script>
+{% endblock %}

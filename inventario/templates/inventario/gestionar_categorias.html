@@ -1,0 +1,100 @@
+{% extends "principal/base.html" %}
+
+{% block page_title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-0 text-gray-800 font-bold" style="font-size: 1.8rem; letter-spacing: -0.5px;">{{ titulo }}</h2>
+            <p class="text-muted text-sm mt-1">Añade o elimina agrupaciones para tus productos</p>
+        </div>
+        <a href="{% url 'inventario:lista_productos' %}" class="btn btn-outline-secondary shadow-sm" style="border-radius: 8px;">
+            <i class="fas fa-arrow-left mr-1"></i> Volver al Catálogo
+        </a>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert" style="border-radius: 8px;">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="row g-4">
+        <!-- Formulario para Nueva Categoría -->
+        <div class="col-md-5">
+            <div class="card shadow-sm" style="border: none; border-radius: 12px; border-top: 4px solid #4f46e5 !important;">
+                <div class="card-body p-4">
+                    <h5 class="card-title text-primary font-weight-bold mb-4"><i class="fas fa-plus-circle mr-2"></i>Nueva Categoría</h5>
+                    <form method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="crear" value="1">
+                        <div class="mb-3">
+                            <label class="form-label font-weight-bold text-gray-700">Nombre de la Categoría <span class="text-danger">*</span></label>
+                            <input type="text" name="nombre" class="form-control" required placeholder="Ej. Uniformes">
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label font-weight-bold text-gray-700">Descripción (Opcional)</label>
+                            <textarea name="descripcion" class="form-control" rows="3" placeholder="Detalle breve sobre esta categoría..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 font-weight-bold shadow-sm" style="border-radius: 8px;">
+                            <i class="fas fa-save mr-2"></i> Crear Categoría
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lista de Categorías Existentes -->
+        <div class="col-md-7">
+            <div class="card shadow-sm" style="border: none; border-radius: 12px;">
+                <div class="card-header bg-white border-0 pt-4 pb-0">
+                    <h5 class="text-secondary font-weight-bold mb-0"><i class="fas fa-list mr-2"></i>Categorías Existentes</h5>
+                </div>
+                <div class="card-body p-4">
+                    {% if categorias %}
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th>Descripción</th>
+                                        <th class="text-center" width="100px">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for cat in categorias %}
+                                    <tr>
+                                        <td class="font-weight-bold text-gray-800">{{ cat.Nombre }}</td>
+                                        <td class="text-muted text-sm">{{ cat.Descripcion|default:"-" }}</td>
+                                        <td class="text-center">
+                                            <form method="POST" onsubmit="return confirm('¿Seguro de que deseas eliminar esta categoría? Nota: Los productos dentro de ella no se eliminarán, pero quedarán sin categoría.');">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="eliminar" value="1">
+                                                <input type="hidden" name="cat_id" value="{{ cat.pk }}">
+                                                <button type="submit" class="btn btn-outline-danger btn-sm" title="Eliminar Categoría">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-tags fa-3x text-muted mb-3" style="opacity: 0.2;"></i>
+                            <h5 class="text-muted">Aún no hay categorías creadas.</h5>
+                            <p class="text-muted mb-0">Crea la primera utilizando el formulario de la izquierda.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kiosko de Asistencia - Colegio Shalom</title>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            margin: 0;
+            color: #fff;
+        }
+
+        .kiosk-container {
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 24px;
+            padding: 3rem;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            position: relative;
+        }
+
+        .clock {
+            font-size: 5rem;
+            font-weight: 700;
+            color: #1e3c72;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .date {
+            font-size: 1.25rem;
+            color: #64748b;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 2rem;
+        }
+
+        .instruction-box {
+            background-color: #f1f5f9;
+            border: 2px dashed #cbd5e1;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+        
+        .instruction-box.scanning {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+        }
+
+        .instruction-icon {
+            font-size: 4rem;
+            color: #94a3b8;
+            margin-bottom: 1rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .instruction-title {
+            color: #334155;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .instruction-text {
+            color: #64748b;
+            font-size: 1rem;
+        }
+
+        /* Input mágico (oculto pero con foco) */
+        #barcode-input {
+            position: absolute;
+            top: -100px;
+            left: -100px;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Toasts Custom */
+        .toast-container {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 1055;
+        }
+
+        .toast {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            border: none;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+            width: 350px;
+        }
+        
+        .toast-header.success { background-color: #10b981; color: white; }
+        .toast-header.warning { background-color: #f59e0b; color: white; }
+        .toast-header.error { background-color: #ef4444; color: white; }
+
+        .btn-exit {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            color: rgba(255,255,255,0.7);
+            font-size: 1.25rem;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: color 0.2s;
+        }
+        .btn-exit:hover {
+            color: white;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Botón Volver (solo para administradores) -->
+    <a href="{% url 'recursos_humanos:rrhh_home' %}" class="btn-exit">
+        <i class="fas fa-arrow-left"></i> Volver a RRHH
+    </a>
+
+    <!-- Input oculto para recibir lectura de escáner -->
+    <form id="kiosko-form">
+        {% csrf_token %}
+        <input type="text" id="barcode-input" autocomplete="off" autofocus>
+    </form>
+
+    <div class="kiosk-container">
+        <!-- Reloj -->
+        <div class="clock" id="clock-display">00:00:00</div>
+        <div class="date" id="date-display">Cargando fecha...</div>
+
+        <!-- Instrucciones -->
+        <div class="instruction-box" id="instruction-box">
+            <i class="fas fa-id-card instruction-icon"></i>
+            <h3 class="instruction-title">Pase su Cédula de Identidad</h3>
+            <p class="instruction-text">Coloque el código de barras trasero frente al lector luminoso para registrar su entrada o salida.</p>
+        </div>
+
+        <p class="text-muted small mb-0"><i class="fas fa-shield-check me-1"></i>Colegio Shalom - Módulo RRHH</p>
+    </div>
+
+    <!-- Contenedor Toasts para Notificaciones -->
+    <div class="toast-container">
+        <!-- Toasts dinámicos de JS irán aquí -->
+    </div>
+
+    <!-- Audios para Feedback -->
+    <!-- Sonido Ok (agradable) y Sonido Error (claxon) -->
+    <audio id="sound-success" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
+    <audio id="sound-error" src="https://assets.mixkit.co/active_storage/sfx/2955/2955-preview.mp3" preload="auto"></audio>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const clockDisplay = document.getElementById('clock-display');
+            const dateDisplay = document.getElementById('date-display');
+            const barcodeInput = document.getElementById('barcode-input');
+            const kioskForm = document.getElementById('kiosko-form');
+            const instructionBox = document.getElementById('instruction-box');
+            const soundSuccess = document.getElementById('sound-success');
+            const soundError = document.getElementById('sound-error');
+            const toastContainer = document.querySelector('.toast-container');
+
+            // --- Lógica del Reloj en Vivo ---
+            function updateClock() {
+                const now = new Date();
+                
+                let hours = now.getHours();
+                const minutes = now.getMinutes().toString().padStart(2, '0');
+                const seconds = now.getSeconds().toString().padStart(2, '0');
+                const ampm = hours >= 12 ? 'PM' : 'AM';
+                
+                hours = hours % 12;
+                hours = hours ? hours : 12; // Hora '0' debe ser '12'
+                const displayHours = hours.toString().padStart(2, '0');
+                
+                clockDisplay.textContent = `${displayHours}:${minutes}:${seconds} ${ampm}`;
+
+                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                dateDisplay.textContent = now.toLocaleDateString('es-ES', options);
+            }
+            setInterval(updateClock, 1000);
+            updateClock();
+
+            // --- Mantener Resiliencia de Autofocus ---
+            // Si el operario hace click fuera accidentalmente, forzamos regresar al input invisible.
+            document.body.addEventListener('click', () => {
+                barcodeInput.focus();
+            });
+            barcodeInput.focus();
+
+            // --- Lógica del Lector de Código de Barras ---
+            // Un escáner funciona tecleando rapidísimo y soltando un "Enter" al final.
+            kioskForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const rawCode = barcodeInput.value;
+                barcodeInput.value = ''; // limpiar de inmediato para el siguiente escaneo
+                
+                if (rawCode.trim() === '') return;
+
+                // Feedback visual de que se está procesando
+                instructionBox.classList.add('scanning');
+                
+                // Procesar Vía AJAX
+                const formData = new FormData();
+                formData.append('raw_code', rawCode);
+                formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+
+                fetch("{% url 'recursos_humanos:api_marcar_asistencia' %}", {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(r => r.json())
+                .then(data => {
+                    setTimeout(() => instructionBox.classList.remove('scanning'), 300);
+                    
+                    if (data.success) {
+                        soundSuccess.currentTime = 0;
+                        soundSuccess.play().catch(e => console.log('Autoplay audio prevenido by browser'));
+                        
+                        const isEntrada = data.accion === "ENTRADA";
+                        const icon = isEntrada ? 'fa-sign-in-alt' : 'fa-sign-out-alt';
+                        const color = isEntrada ? 'success' : 'warning';
+                        
+                        showToast(`¡${data.accion}!`, data.message, data.empleado, color, icon);
+                    } else {
+                        soundError.currentTime = 0;
+                        soundError.play().catch(e => console.log('Autoplay audio prevenido by browser'));
+                        
+                        showToast('Advertencia', data.error, null, 'error', 'fa-exclamation-triangle');
+                    }
+                })
+                .catch(err => {
+                    setTimeout(() => instructionBox.classList.remove('scanning'), 300);
+                    showToast('Error de Conexión', 'Hubo un problema comunicándose con el servidor.', null, 'error', 'fa-wifi');
+                });
+            });
+
+            // Función para renderizar los Toast dinámicos
+            function showToast(title, message, empName, typeClass, iconClass) {
+                const toastId = 'toast-' + Date.now();
+                
+                let employeeInfoHtml = '';
+                if(empName) {
+                    employeeInfoHtml = `<div class="mt-2 text-dark font-weight-bold"><i class="fas fa-user-circle me-1"></i> ${empName}</div>`;
+                }
+
+                const toastHtml = `
+                    <div id="${toastId}" class="toast align-items-center mb-2" role="alert" aria-live="assertive" aria-atomic="true">
+                        <div class="toast-header ${typeClass} border-0">
+                            <i class="fas ${iconClass} me-2"></i>
+                            <strong class="me-auto">${title}</strong>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                        <div class="toast-body">
+                            ${message}
+                            ${employeeInfoHtml}
+                        </div>
+                    </div>
+                `;
+                
+                toastContainer.insertAdjacentHTML('afterbegin', toastHtml);
+                const toastEl = document.getElementById(toastId);
+                const bsToast = new bootstrap.Toast(toastEl, { delay: 5000 });
+                bsToast.show();
+                
+                // Limpiar del DOM luego de mostrarse
+                toastEl.addEventListener('hidden.bs.toast', () => {
+                    toastEl.remove();
+                });
+            }
+        });
+    </script>
+</body>
+</html>

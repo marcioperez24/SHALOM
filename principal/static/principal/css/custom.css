@@ -1,0 +1,344 @@
+/* custom.css */
+:root {
+    /* --- VARIABLES TEMA CLARO PREMIUM --- */
+    --primary-blue: #4f46e5;
+    --dark-blue: #3730a3;
+    --primary-blue-light: #818cf8;
+    --sidebar-bg: #ffffff;
+    --sidebar-border: #e5e7eb;
+    --card-bg: #ffffff;
+    --card-shadow: rgba(17, 24, 39, 0.05);
+    --card-hover-shadow: rgba(17, 24, 39, 0.1);
+    --text-color-dark: #111827;
+    --text-color-medium: #4b5563;
+    --text-color-light: #9ca3af;
+    --red-priority: #ef4444;
+    --orange-priority: #f97316;
+    --green-status: #10b981;
+    --yellow-status: #f59e0b;
+    --table-header-bg: #f9fafb;
+    --body-bg: #f3f4f6;
+    --font-family-base: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+
+/* ==========================================================
+    ESTILOS BASE
+    ========================================================== */
+
+body {
+    font-family: var(--font-family-base);
+    background-color: var(--body-bg);
+    margin: 0;
+    color: var(--text-color-dark);
+    overflow-x: hidden;
+    /* Transición suave para el cambio de tema */
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+#wrapper {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* ==========================================================
+    SIDEBAR (TEMA CLARO)
+    ========================================================== */
+
+#sidebar-wrapper {
+    min-width: 250px;
+    max-width: 250px;
+    background-color: var(--sidebar-bg);
+    border-right: 1px solid var(--sidebar-border);
+    transition: all .25s ease-out;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+}
+
+#sidebar-wrapper .sidebar-heading {
+    padding: 1.5rem 1.25rem;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--primary-blue);
+    border-bottom: 1px solid var(--sidebar-border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    /* Necesario para el botón de cierre en móvil */
+}
+
+#sidebar-wrapper .sidebar-heading img {
+    max-height: 60px;
+    width: auto;
+    margin-bottom: 0.5rem;
+}
+
+#sidebar-wrapper .sidebar-heading small {
+    font-size: 0.8rem;
+    color: var(--text-color-light);
+    margin-top: 5px;
+}
+
+#sidebar-wrapper .list-group-item {
+    color: var(--text-color-dark);
+    background-color: var(--sidebar-bg);
+    padding: 1rem 1.25rem;
+    border: none;
+    border-radius: 8px; /* Rounded corners for premium feel */
+    margin: 0.2rem 0.5rem; /* Margin to detach from edges */
+    transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+#sidebar-wrapper .list-group-item:hover {
+    background-color: var(--sidebar-border);
+    color: var(--primary-blue);
+    transform: translateX(4px); /* Micro-animation */
+}
+
+#sidebar-wrapper .list-group-item.active {
+    background-color: var(--primary-blue-light);
+    background-image: linear-gradient(135deg, var(--primary-blue), var(--dark-blue)); /* Gradient active */
+    color: white;
+    font-weight: 600;
+    border-radius: 8px;
+    position: relative;
+    box-shadow: 0 4px 6px rgba(79, 70, 229, 0.25);
+}
+
+/* Íconos en tema claro */
+#sidebar-wrapper .list-group-item .fas,
+#sidebar-wrapper .list-group-item .fa-solid {
+    color: var(--text-color-medium);
+}
+
+#sidebar-wrapper .list-group-item.active .fas,
+#sidebar-wrapper .list-group-item.active .fa-solid {
+    color: white;
+    /* Ícono activo en blanco */
+}
+
+
+/* ==========================================================
+    CONTENIDO DE LA PÁGINA Y NAVBAR (TEMA CLARO)
+    ========================================================== */
+
+/* NOTA: El padding-left es manejado por JS y por el CSS en línea de base.html */
+#page-content-wrapper {
+    flex-grow: 1;
+    /* Eliminar padding aquí, se controla desde base.html */
+}
+
+.navbar-custom {
+    background-color: var(--card-bg);
+    /* Fondo sólido para el sticky header */
+    border-bottom: 1px solid var(--sidebar-border);
+    padding: 1rem 0;
+    margin-bottom: 0;
+    /* Eliminar margen para mejor control del sticky */
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.navbar-brand-custom {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--primary-blue);
+    border-left: 4px solid var(--primary-blue);
+    padding-left: 15px;
+}
+
+/* Estilos de Bienvenida en Navbar */
+.user-welcome-text,
+.user-username {
+    color: var(--text-color-dark);
+}
+
+
+/* ==========================================================
+    CARDS Y KPI (TEMA CLARO)
+    ========================================================== */
+
+.dashboard-card {
+    background-color: var(--card-bg);
+    border-radius: 12px;
+    box-shadow: 0 4px 15px var(--card-shadow);
+    padding: 25px;
+    margin-bottom: 30px;
+    border: 1px solid var(--sidebar-border);
+    transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.dashboard-card:hover {
+    box-shadow: 0 10px 25px var(--card-hover-shadow);
+    transform: translateY(-4px); /* Hover lift */
+}
+
+.kpi-card .kpi-value {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--primary-blue);
+}
+
+/* Estilos adicionales para KPI, tablas y badges */
+.kpi-card .kpi-icon {
+    position: absolute;
+    top: 25px;
+    right: 25px;
+    font-size: 2.5rem;
+    color: rgba(0, 0, 0, 0.08);
+}
+
+.tickets-table th {
+    background-color: var(--table-header-bg);
+    color: var(--text-color-medium);
+}
+
+.tickets-table td {
+    background-color: var(--card-bg);
+}
+
+.priority-badge {
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: inline-block;
+    min-width: 60px;
+    text-align: center;
+}
+
+.priority-badge.high {
+    background-color: var(--red-priority);
+    color: white;
+}
+
+.priority-badge.medium {
+    background-color: var(--orange-priority);
+    color: white;
+}
+
+.priority-badge.low {
+    background-color: #007bff;
+    color: white;
+}
+
+.priority-badge.urgent {
+    background-color: #6f42c1;
+    color: white;
+}
+
+
+/* ==========================================================
+    TEMA OSCURO (AÑADIDO Y CORREGIDO PARA VISIBILIDAD) 🌙
+    ========================================================== */
+
+body.dark-theme {
+    /* --- Variables de Tema Oscuro --- */
+    --body-bg: #0f172a;
+    --sidebar-bg: #1e293b;
+    --sidebar-border: #334155;
+    --card-bg: #1e293b;
+    --card-shadow: rgba(0, 0, 0, 0.25);
+    --card-hover-shadow: rgba(0, 0, 0, 0.4);
+    --text-color-dark: #f8fafc;
+    --text-color-medium: #cbd5e1;
+    --text-color-light: #94a3b8;
+    --table-header-bg: #0f172a;
+    --primary-blue: #6366f1; /* Lighter Indigo for Dark mode */
+    --dark-blue: #4f46e5;
+    --primary-blue-light: #818cf8;
+
+    background-color: var(--body-bg);
+    color: var(--text-color-dark);
+}
+
+/* SIDEBAR CORRECCIONES VISIBLES */
+body.dark-theme #sidebar-wrapper {
+    background-color: var(--sidebar-bg);
+    border-color: var(--sidebar-border);
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Encabezado: Titulo y Subtítulo */
+body.dark-theme #sidebar-wrapper .sidebar-heading {
+    color: var(--primary-blue);
+    border-bottom-color: var(--sidebar-border);
+}
+
+body.dark-theme #sidebar-wrapper .sidebar-heading small {
+    color: var(--text-color-light);
+}
+
+/* Ítems no activos: Texto y Fondo */
+body.dark-theme #sidebar-wrapper .list-group-item {
+    color: var(--text-color-dark);
+    background-color: var(--sidebar-bg);
+}
+
+/* Ítems no activos: Íconos (LA CORRECCIÓN CLAVE) */
+body.dark-theme #sidebar-wrapper .list-group-item .fas,
+body.dark-theme #sidebar-wrapper .list-group-item .fa-solid {
+    color: var(--text-color-medium);
+    /* Asegura que el icono no sea negro sobre fondo oscuro */
+}
+
+/* Ítems Hover */
+body.dark-theme #sidebar-wrapper .list-group-item:hover {
+    background-color: #2a2a2a;
+    color: var(--primary-blue);
+}
+
+body.dark-theme #sidebar-wrapper .list-group-item.active {
+    background-color: var(--primary-blue);
+    color: white;
+}
+
+body.dark-theme #sidebar-wrapper .list-group-item.active .fas,
+body.dark-theme #sidebar-wrapper .list-group-item.active .fa-solid {
+    color: white;
+    /* Asegura el color blanco en el ícono del elemento activo */
+}
+
+
+/* PAGE CONTENT (Navbar) */
+body.dark-theme .navbar-custom {
+    background-color: var(--body-bg);
+    border-color: var(--sidebar-border);
+}
+
+body.dark-theme .user-welcome-text,
+body.dark-theme .user-username,
+body.dark-theme .fa-user-circle {
+    color: var(--text-color-dark);
+}
+
+/* CARDS */
+body.dark-theme .dashboard-card {
+    background-color: var(--card-bg);
+    box-shadow: 0 4px 15px var(--card-shadow);
+}
+
+/* TABLAS */
+body.dark-theme .tickets-table th {
+    background-color: var(--table-header-bg);
+    color: var(--text-color-light);
+}
+
+body.dark-theme .tickets-table td {
+    background-color: var(--card-bg);
+    box-shadow: 0 2px 5px var(--card-shadow);
+    color: var(--text-color-dark);
+}
+
+/* TITULOS */
+body.dark-theme .navbar-brand-custom {
+    color: var(--primary-blue);
+    border-left-color: var(--primary-blue);
+}

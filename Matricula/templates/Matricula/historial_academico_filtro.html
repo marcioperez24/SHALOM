@@ -1,0 +1,168 @@
+{% extends 'principal/base.html' %}
+{% load static %}
+
+{% block page_title %}
+Generar Historial Académico
+{% endblock %}
+
+{% block extra_css %}
+<!-- CSS para jQuery UI Autocomplete -->
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.13.3/themes/base/jquery-ui.css">
+<!-- Font Awesome para íconos (Añadido) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+    /* Ajustes para el autocompletar (igual que en boletin_individual_filtro) */
+    .ui-autocomplete {
+        max-height: 200px; overflow-y: auto; overflow-x: hidden;
+        z-index: 1050 !important; position: absolute !important; 
+        cursor: default; background-color: #fff; 
+        border: 1px solid #ced4da; border-radius: 0.375rem; 
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+    .ui-menu-item { padding: 0.5rem 1rem; }
+    .ui-menu-item-wrapper { color: #212529; display: block; }
+    .ui-menu-item-wrapper.ui-state-active {
+        background-color: #0d6efd; color: white; border: none; 
+        border-radius: 0; cursor: pointer; margin: 0;
+    }
+    .student-search-container { position: relative; }
+
+    /* --- NUEVO: Estilo para breadcrumb como botones --- */
+    .btn-breadcrumb .btn {
+        border-radius: 0; /* Esquinas cuadradas */
+    }
+    .btn-breadcrumb .btn:first-child {
+        border-top-left-radius: .25rem;
+        border-bottom-left-radius: .25rem;
+    }
+    .btn-breadcrumb .btn:last-child {
+        border-top-right-radius: .25rem;
+        border-bottom-right-radius: .25rem;
+    }
+    /* --- FIN NUEVO --- */
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row mb-3">
+        <div class="col-12">
+            <h2 class="text-danger">Generar Historial Académico</h2>
+            <!-- 
+            =============================================================
+              BREADCRUMB MODIFICADO CON ESTILO DE BOTONES
+            =============================================================
+            -->
+            <nav aria-label="breadcrumb" class="mt-2 mb-4">
+                <div class="btn-group btn-group-sm btn-breadcrumb" role="group" aria-label="Breadcrumb navigation">
+                    <a href="{% url 'Matricula:Matricula_home' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-home me-1"></i> Panel
+                    </a>
+                    <button type="button" class="btn btn-danger active" aria-current="page" disabled> <!-- Color cambiado a 'danger' -->
+                        <i class="fas fa-filter me-1"></i> Filtro Historial
+                    </button>
+                </div>
+            </nav>
+            <!-- Fin Breadcrumb Modificado -->
+            <p class="text-muted">Busca y selecciona al estudiante para generar su historial académico completo.</p>
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="card shadow-lg">
+        <div class="card-body p-4">
+            <form id="historialForm" method="GET" action="#"> 
+                {% csrf_token %} 
+
+                <!-- Selección de Estudiante -->
+                <div class="mb-4 student-search-container"> <!-- Eliminado mb-5, volviendo al original mb-4 -->
+                    <label for="student_search" class="form-label fw-bold fs-5 text-primary">
+                        <i class="fas fa-search me-2"></i>Buscar Estudiante
+                    </label>
+                    <input type="text" id="student_search" class="form-control form-control-lg" placeholder="Escribe el nombre del estudiante...">
+                    <input type="hidden" id="student_id" name="student_id"> 
+                    <div id="student_name_display" class="mt-2 text-muted fst-italic"></div>
+                </div>
+
+                <!-- Botón de Generar -->
+                <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-5">
+                    <button type="submit" class="btn btn-danger btn-lg shadow-sm" id="generateButton" disabled>
+                        <i class="fas fa-history me-2"></i>Generar Historial
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- jQuery y jQuery UI -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://code.jquery.com/ui/1.13.3/jquery-ui.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    const studentSearchInput = $("#student_search");
+    const studentIdInput = $("#student_id");
+    const studentNameDisplay = $("#student_name_display");
+    const generateButton = $("#generateButton");
+    const historialForm = $("#historialForm");
+    const searchContainer = $(".student-search-container"); 
+    
+    // (Eliminadas referencias a periodCheckboxes y checkAll)
+
+    // --- Autocompletar (igual que en boletin_individual_filtro) ---
+    studentSearchInput.autocomplete({
+        source: "{% url 'Matricula:api_buscar_estudiantes' %}", 
+        minLength: 2, 
+        appendTo: searchContainer, 
+        position: { my: "left top", at: "left bottom", collision: "none" }, 
+        open: function() {
+            $(this).autocomplete("widget").css({ "width": studentSearchInput.outerWidth() + "px" });
+        },
+        select: function(event, ui) {
+            studentIdInput.val(ui.item.id); 
+            studentNameDisplay.text("Estudiante seleccionado: " + ui.item.label); 
+            studentSearchInput.val(ui.item.label); 
+            generateButton.prop('disabled', false); 
+            return false; 
+        },
+        change: function(event, ui) {
+            if (!ui.item) {
+                studentIdInput.val(''); 
+                studentNameDisplay.text(''); 
+                generateButton.prop('disabled', true); 
+            }
+        }
+    });
+
+    // --- Envío del Formulario ---
+    historialForm.on('submit', function(e) {
+        e.preventDefault(); 
+
+        const studentId = studentIdInput.val();
+        if (!studentId) {
+            alert("Por favor, selecciona un estudiante.");
+            return;
+        }
+
+        // Construir la URL de destino
+        let baseUrl = "{% url 'Matricula:ver_historial_academico' 0 %}"; 
+        baseUrl = baseUrl.replace('/0/', '/' + studentId + '/'); 
+        
+        // Redirigir
+        window.location.href = baseUrl; 
+    });
+
+});
+</script>
+{% endblock %}
